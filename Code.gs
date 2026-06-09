@@ -334,14 +334,14 @@ function generateAltTextSuggestions(payload) {
   var systemInstructionText = `Analyze this slide's visual layout and context. 
 You will be given a JSON list of element IDs and types (IMAGE or SHAPE) that are currently missing alt-text.
 
-For each IMAGE: Generate a highly descriptive, concise alt-text summary (1-2 sentences max).
+For each IMAGE: Generate a highly succinct, descriptive alt-text summary. Be extremely concise (maximum 1 short sentence, under 15 words). Focus only on the core subject and ignore minor background details.
 For each SHAPE: Evaluate if the shape provides essential contextual or informational meaning to the slide, or if it is purely a decorative/stylistic element (e.g., background waves, accent blocks, framing banners, colored rectangles). Provide a confidence score from 0 to 100 on how likely it is to be purely decorative, along with a brief 1-sentence reason.
 
 Return ONLY a JSON object matching this exact structure:
 {
   "element_id_here": {
     "type": "IMAGE",
-    "suggestion": "A grey arrow graphic pointing towards the right side of the slide."
+    "suggestion": "London skyline featuring the London Eye and Big Ben."
   },
   "another_element_id": {
     "type": "SHAPE",
