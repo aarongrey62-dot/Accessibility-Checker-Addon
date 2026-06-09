@@ -427,7 +427,7 @@
       <button class="tab-btn" id="tab-summary" onclick="switchTab('summary')"><span class="tab-num">4</span>Summary</button>
     </div>
 
-    <div class="info-box">
+    <div class="info-box" id="order-info-box">
       <ul>
         <li>Drag and drop items to set reading order</li>
         <li>Click links to locate elements on the slide</li>
@@ -727,8 +727,9 @@
           `;
           orderAlertActive = true;
         }
-        
-        suggestionBox.style.display = 'block';
+        if (currentTab === 'order') {
+          suggestionBox.style.display = 'block';
+        }
         updateOrderTabCounter();
       }
 
@@ -930,23 +931,23 @@
       }
 
       function switchTab(tabName) {
-        if (currentTab === tabName) return; // Do nothing if already on this tab
+        if (currentTab === tabName) return; 
         currentTab = tabName;
 
-        // Visually highlight the active tab
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById('tab-' + tabName).classList.add('active');
 
-        // Render the correct content
         if (currentTab === 'order') {
-           loadData(); // Re-run the main data fetch for the Order tab
+           document.getElementById('order-info-box').style.display = 'block'; // Show Order info
+           loadData(); 
         } else if (currentTab === 'visuals') {
-           document.getElementById('ai-order-suggestion').style.display = 'none'; // Hide order warnings
+           document.getElementById('order-info-box').style.display = 'none'; // Hide Order info
+           document.getElementById('ai-order-suggestion').style.display = 'none'; 
            document.getElementById('finishing-check').style.display = 'none';
-           renderVisualsTab();
-           fetchAltTextSuggestions();
+           renderVisualsTab(); 
+           fetchAltTextSuggestions(); 
         } else {
-           // Placeholder for Colour and Summary tabs
+           document.getElementById('order-info-box').style.display = 'none'; // Hide Order info
            document.getElementById('ai-order-suggestion').style.display = 'none';
            document.getElementById('sortable-list').innerHTML = `<div class="loading-state"><div>${tabName} tab coming soon!</div></div>`;
         }
