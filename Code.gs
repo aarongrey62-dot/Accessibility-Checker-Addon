@@ -331,17 +331,29 @@ function generateAltTextSuggestions(payload) {
 
   var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=' + apiKey;
   
-  var systemInstructionText = `Analyze this slide's visual content. 
-You will be given a JSON list of element IDs and their basic types (IMAGE or SHAPE) that are currently missing alt-text.
-Generate a highly descriptive, concise alt-text (1-2 sentences max) for each specific element based on how it appears visually on the slide. 
-If it is a shape with text inside, include the text.
-Return ONLY a JSON object where the keys are the element IDs, and the values are the suggested alt-text string.
-Example: {"id123": "A red double-decker bus crossing a bridge.", "id456": "A blue arrow pointing right."}`;
+  var systemInstructionText = `Analyze this slide's visual layout and context. 
+You will be given a JSON list of element IDs and types (IMAGE or SHAPE) that are currently missing alt-text.
+
+For each IMAGE: Generate a highly descriptive, concise alt-text summary (1-2 sentences max).
+For each SHAPE: Evaluate if the shape provides essential contextual or informational meaning to the slide, or if it is purely a decorative/stylistic element (e.g., background waves, accent blocks, framing banners, colored rectangles). Provide a confidence score from 0 to 100 on how likely it is to be purely decorative, along with a brief 1-sentence reason.
+
+Return ONLY a JSON object matching this exact structure:
+{
+  "element_id_here": {
+    "type": "IMAGE",
+    "suggestion": "A grey arrow graphic pointing towards the right side of the slide."
+  },
+  "another_element_id": {
+    "type": "SHAPE",
+    "is_decorative_prob": 85,
+    "reason": "It is a decorative wave graphic at the bottom providing purely visual styling."
+  }
+}`;
   
   var slideImage = null;
   try { slideImage = getSlideImageBase64(payload.slideId); } catch(e) {}
 
-  var contentsParts = [{ "text": "Elements needing descriptions: " + JSON.stringify(payload.elements) }];
+  var contentsParts = [{ "text": "Elements to evaluate: " + JSON.stringify(payload.elements) }];
   if (slideImage) {
     contentsParts.push({ "inline_data": { "mime_type": slideImage.mimeType, "data": slideImage.base64Data } });
   }
