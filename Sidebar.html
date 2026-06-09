@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+      body { font-family: 'Roboto', sans-serif; padding: 16px; padding-bottom: 80px; margin: 0; color: #1F1F1F; font-size: 13px; background: #F8F9FA; }
+      
+      .header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+      
+      .slide-indicator { display: flex; align-items: center; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; }
+      .dot { height: 9px; width: 9px; background-color: rgba(0, 145, 78, 0.64); border-radius: 50%; display: inline-block; margin-right: 6px; }
+      .slide-current { color: #00703C; }
+      .slide-count { color: #7B7B7B; }
+      
+      .btn-group { display: flex; gap: 4px; }
+      
+      .btn-pill-outline { 
+        background-color: #EEF5FF; 
+        border: 1px solid #356CC6; 
+        color: #000000; 
+        border-radius: 100px; 
+        height: 29px;
+        padding: 0 14px; 
+        font-family: 'Inter', sans-serif;
+        font-weight: 500; 
+        font-size: 11px; 
+        cursor: pointer; 
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s ease;
+      }
+      .btn-pill-outline:hover,
+      .btn-pill-outline:focus { 
+        background-color: #E0E8F9; /* Updated to the lighter hover/focus color */
+        outline: none;
+      }
+
+      /* TAB PANEL LAYOUT & SPACING */
+      .tabs-container { 
+        display: flex; 
+        gap: 1px; 
+        margin-bottom: 16px; 
+        padding: 0; 
+      }
+      
+      .tab-btn { 
+        flex: 1; 
+        background: transparent; 
+        border: none; 
+        height: 40px; 
+        padding: 6px 8px; 
+        font-family: 'Inter', sans-serif; 
+        font-size: 13px; /* Increased from 11px */
+        font-weight: 500; 
+        color: #1F1F1F; 
+        cursor: pointer; 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 1px; 
+        border-radius: 6px; 
+        transition: background-color 0.2s ease;
+      }
+      .tab-btn:hover { 
+        background-color: rgba(0, 0, 0, 0.06); 
+      }
+      .tab-btn.active { 
+        background-color: #FFE68A; 
+      }
+      .tab-btn.active:hover {
+        background-color: #FFE68A; 
+      }
+
+      .tab-btn.active.loading-ai {
+        background-color: #E0E7FA;
+      }
+
+      .tab-num { 
+        font-size: 11px; 
+        font-weight: 500; 
+      }
+
+      .info-box { 
+        background-color: #ffffff; 
+        border-radius: 10px; 
+        padding: 12px 8px;  
+        margin-bottom: 16px; 
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08); 
+      }
+      .info-box ul { 
+        margin: 0; 
+        padding-left: 20px; 
+        font-family: 'Inter', sans-serif; 
+        font-weight: 400; 
+        font-size: 11px;
+        line-height: 1.3;
+        color: #1F1F1F; 
+      }
+
+      #sortable-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+      .card-wrapper { display: flex; flex-direction: column; }
+      .card { border: 1px solid #E0E0E0; border-radius: 4px; background: #fff; display: flex; align-items: stretch; transition: border-color 0.2s; height: 32px; }
+      .card.dragging { opacity: 0.5; border: 2px dashed #1A73E8; }
+      
+      .card-number { width: 32px; border-right: 1px solid #E0E0E0; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #1F1F1F; }
+      .card-content { padding: 0 12px; flex-grow: 1; display: flex; align-items: center; overflow: hidden; }
+      .card-title { color: #1A73E8; text-decoration: underline; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px; }
+      .drag-handle { width: 24px; display: flex; align-items: center; justify-content: center; cursor: grab; color: #A0C2F9; font-weight: bold; font-size: 16px; letter-spacing: -2px; border-radius: 0 4px 4px 0; background: #F8FBFF; }
+      .drag-handle:hover { background-color: #E4EEFF; }
+      
+      .card.missing-title { 
+        border: 1px solid #E0E0E0; 
+        border-left: 3px solid #C55353; /* New solid red border */
+        border-radius: 4px; 
+        background: #fff; 
+        display: flex; 
+        align-items: stretch; 
+        transition: border-color 0.2s; 
+        height: 32px; 
+      }
+      .card-content.missing-title-content { 
+        font-weight: 500; 
+        color: #1F1F1F; 
+        justify-content: space-between; 
+        width: 100%; 
+        padding-right: 8px; /* Slightly more padding for the button */
+      }
+
+      .btn-add-inline { 
+        background-color: #0B56CF; 
+        color: #ffffff; 
+        border: 1px solid #12548D; 
+        border-radius: 100px; 
+        width: 64px; 
+        height: 20px; 
+        font-family: 'Inter', sans-serif;
+        font-size: 11px; 
+        font-weight: 500; 
+        cursor: pointer; 
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+      }
+      .btn-add-inline:hover { background-color: #0842A0; }
+
+      .card-wrapper.has-suggestion .card {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+      }
+
+      .ai-inline-suggestion { 
+        background-color: #FFFDE7; 
+        padding: 8px 12px; 
+        display: flex; 
+        align-items: center; 
+        gap: 6px; 
+        border-radius: 0 0 4px 0;
+        margin-top: -1px; 
+        border-left: 3px solid #FFBC27; 
+        border-bottom: 1px solid #E0E0E0;
+        border-right: 1px solid #E0E0E0;
+      }
+      
+      .ai-inline-suggestion span { 
+        display: flex; 
+        align-items: center; 
+        gap: 8px; 
+        font-family: 'Inter', sans-serif;
+        font-size: 11px; 
+        font-weight: 500; 
+        color: #1F1F1F; 
+      }
+
+      .ai-inline-suggestion span::before {
+        content: "";
+        display: inline-block;
+        width: 16px;
+        height: 15px;
+        background-image: url("data:image/svg+xml,%3Csvg width='16' height='15' viewBox='0 0 16 15' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 1C7 0.447715 7.44772 0 8 0C8.55228 0 9 0.447715 9 1V2C9 2.55228 8.55228 3 8 3C7.44772 3 7 2.55228 7 2V1Z' fill='%23F8C200'/%3E%3Cpath d='M15 7C15.5523 7 16 7.44772 16 8C16 8.55228 15.5523 9 15 9H14C13.4477 9 13 8.55228 13 8C13 7.44772 13.4477 7 14 7H15Z' fill='%23F8C200'/%3E%3Cpath d='M2 7C2.55228 7 3 7.44772 3 8C3 8.55228 2.55228 9 2 9H1C0.447715 9 -2.41411e-08 8.55228 0 8C2.41411e-08 7.44772 0.447715 7 1 7H2Z' fill='%23F8C200'/%3E%3Cpath d='M12.1213 2.99999C11.7308 3.39051 11.7308 4.02368 12.1213 4.4142C12.5118 4.80473 13.145 4.80473 13.5355 4.4142L14.2426 3.70709C14.6332 3.31657 14.6332 2.68341 14.2426 2.29288C13.8521 1.90236 13.2189 1.90236 12.8284 2.29288L12.1213 2.99999Z' fill='%23F8C200'/%3E%3Cpath d='M3.82843 2.99999C4.21895 3.39051 4.21895 4.02368 3.82843 4.4142C3.4379 4.80473 2.80474 4.80473 2.41421 4.4142L1.70711 3.70709C1.31658 3.31657 1.31658 2.68341 1.70711 2.29288C2.09763 1.90236 2.7308 1.90236 3.12132 2.29288L3.82843 2.99999Z' fill='%23F8C200'/%3E%3Cpath d='M4 8C4 9.48057 4.8044 10.7733 6 11.4649V13C6 14.1046 6.89543 15 8 15C9.10457 15 10 14.1046 10 13V11.4649C11.1956 10.7733 12 9.48057 12 8C12 5.79086 10.2091 4 8 4C5.79086 4 4 5.79086 4 8Z' fill='%23F8C200'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+        flex-shrink: 0;
+      }
+
+      .ai-inline-suggestion svg {
+        flex-shrink: 0 !important;
+        min-width: 16px !important;
+        width: 16px !important;
+        height: 15px !important;
+        display: block !important;
+      }
+      
+      .ai-inline-suggestion em {
+        font-weight: 400;
+        font-style: italic;
+      }
+
+      .tab-btn.active.success-state {
+        background-color: #D5ECE3;
+      }
+
+      .ai-inline-success { 
+        background-color: rgba(1, 147, 79, 0.05); 
+        padding: 8px 12px; 
+        display: flex; 
+        align-items: center; 
+        gap: 6px; 
+        border-radius: 0 0 4px 0; 
+        margin-top: -1px; 
+        border-left: 3px solid #01934F; 
+        border-bottom: 1px solid #E0E0E0;
+        border-right: 1px solid #E0E0E0;
+      }
+      .ai-inline-success span { 
+        display: flex; 
+        align-items: center; 
+        gap: 8px; 
+        font-family: 'Inter', sans-serif;
+        font-size: 11px; 
+        font-weight: 600; 
+        color: #1F1F1F; 
+      }
+      
+      .ai-success-box { 
+        background-color: rgba(1, 147, 79, 0.05); 
+        border: none; 
+        border-left: 3px solid #01934F; 
+        padding: 10px 12px; 
+        border-radius: 0 4px 4px 0; 
+        margin-bottom: 24px; 
+        display: none; 
+      }
+      .ai-success-box span {
+        display: flex; 
+        align-items: center; 
+        gap: 8px; 
+        font-family: 'Inter', sans-serif;
+        font-size: 11px; 
+        font-weight: 600; 
+        color: #1F1F1F;
+      }
+
+      .ai-inline-success span::before,
+      .ai-success-box span::before {
+        content: "";
+        display: inline-block;
+        width: 16px;
+        height: 15px;
+        background-image: url("data:image/svg+xml,%3Csvg width='16' height='15' viewBox='0 0 16 15' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8 0L10.46 5.34L16 6.11L12 10.15L12.94 16L8 13.14L3.06 16L4 10.15L0 6.11L5.54 5.34L8 0Z' fill='%2301934F'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+        flex-shrink: 0;
+      }
+
+      .ai-suggestion-box { 
+        background-color: #FFFDE7; 
+        border: none;
+        border-left: 3px solid #FFBC27;
+        padding: 10px 12px; 
+        border-radius: 0 4px 4px 0; 
+        margin-bottom: 24px; 
+        display: none; 
+      }
+
+      .ai-suggestion-box strong { 
+        display: flex; 
+        align-items: center; 
+        gap: 8px; 
+        font-family: 'Inter', sans-serif;
+        font-size: 11px; 
+        font-weight: 500; 
+        color: #1F1F1F;
+        margin-bottom: 4px; 
+      }
+      
+      .ai-suggestion-box svg {
+        flex-shrink: 0 !important;
+        min-width: 16px !important;
+        width: 16px !important;
+        height: 15px !important;
+        display: block !important;
+      }
+
+      .ai-suggestion-box span {
+        font-family: 'Inter', sans-serif;
+        font-size: 11px;
+        font-weight: 400;
+        line-height: 1.3;
+        color: #1F1F1F;
+      }
+
+      .bottom-action-area { 
+        position: fixed; 
+        bottom: 0; 
+        left: 0; 
+        right: 0; 
+        background-color: #F8F9FA;
+        padding: 16px; 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        gap: 12px; 
+        z-index: 100;
+      }
+      .btn-save { background-color: #1A73E8; color: #ffffff; border: none; border-radius: 20px; padding: 10px 24px; font-size: 14px; font-weight: 500; cursor: pointer; width: 80%; display: none; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+      .btn-save:hover { background-color: #1557B0; }
+      .link-next { 
+        color: #0041AA; 
+        text-decoration: underline; 
+        cursor: pointer; 
+        font-family: 'Inter', sans-serif;
+        font-size: 11px; 
+        font-weight: 500; 
+        line-height: 1.3;
+      }
+
+      .loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 0; color: #1F1F1F; font-size: 12px; }
+      .dots { font-size: 24px; letter-spacing: 2px; margin-bottom: 8px; color: #1F1F1F; }
+
+      .finishing-loader-container {
+        display: none; /* Hidden by default */
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        margin-bottom: 12px;
+        font-family: 'Inter', sans-serif;
+        font-size: 11px;
+        font-style: italic;
+        font-weight: 500;
+        color: #1F1F1F;
+      }
+      .finishing-spinner {
+        width: 12px;
+        height: 12px;
+        border: 2px solid #356CC6;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin { 100% { transform: rotate(360deg); } }
+
+      /* RED TAB STATE */
+      .tab-btn.active.error-state {
+        background-color: #FAD2D2;
+      }
+
+      /* RED INLINE ALERT (Missing Title) */
+      .ai-inline-error { 
+        background-color: #FFEEEE; 
+        padding: 8px 12px; 
+        display: flex; 
+        align-items: center; 
+        gap: 6px; 
+        border-radius: 0 0 4px 0;
+        margin-top: -1px; 
+        border-left: 3px solid #C55353; 
+        border-bottom: 1px solid #E0E0E0;
+        border-right: 1px solid #E0E0E0;
+      }
+      .ai-inline-error span { 
+        display: flex; 
+        align-items: center; 
+        gap: 8px; 
+        font-family: 'Inter', sans-serif;
+        font-size: 11px; 
+        font-weight: 500; 
+        color: #1F1F1F; 
+      }
+      
+      .ai-inline-error span::before {
+        content: "";
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        background-image: url("data:image/svg+xml,%3Csvg fill='%23C55353' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.884 2.532c-.346-.654-1.422-.654-1.768 0l-9 17A.999.999 0 0 0 3 21h18a.999.999 0 0 0 .884-1.468l-9-17zM13 18h-2v-2h2v2zm0-4h-2V8h2v6z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+        flex-shrink: 0;
+      }
+
+      .visual-card { border: 1px solid #E0E0E0; border-left: 3px solid #1A73E8; border-radius: 4px; background: #fff; margin-bottom: 8px; overflow: hidden; display: flex; flex-direction: column; }
+      .visual-card.success-card { border-left-color: #01934F; }
+      .visual-card.error-card { border-left-color: #C55353; }
+      .visual-card.warning-card { border-left-color: #F8C200; }
+
+      .visual-header { padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E0E0E0; background: #fff;}
+      .visual-title { color: #1A73E8; text-decoration: underline; cursor: pointer; font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%; }
+      .visual-title.missing-text { color: #C55353; }
+
+      .btn-visual-action { background: #fff; color: #235BCC; border: 1px solid #235BCC; border-radius: 100px; padding: 4px 16px; font-size: 11px; font-weight: 500; cursor: pointer; height: 24px;}
+      .btn-visual-action.primary { background: #235BCC; color: #fff; border-color: #235BCC; }
+
+      .visual-status { padding: 8px 12px; display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; color: #1F1F1F; }
+      .visual-status.success-bg { background-color: #E8F4EC; }
+      .visual-status.error-bg { background-color: #FAEDED; }
+      .visual-status.warning-bg { background-color: #FEF7E0; }
+
+      .visual-controls { padding: 8px 12px; display: flex; align-items: center; gap: 8px; font-size: 13px; background: #fff; }
+      
+      .btn-add-background { background: #235BCC; color: white; border: none; border-radius: 20px; padding: 12px 24px; font-size: 13px; font-weight: 500; cursor: pointer; width: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.12); margin-top: 16px;}
+
+    </style>
+  </head>
+  <body>
+    
+    <div class="header-controls">
+      <div class="slide-indicator">
+        <span class="dot"></span>
+        <span id="slide-display"><span class="slide-current">Slide -</span> <span class="slide-count">of -</span></span>
+      </div>
+      <div class="btn-group">
+        <button class="btn-pill-outline">Deck view</button>
+        <button class="btn-pill-outline" onclick="loadData()">Refresh</button>
+      </div>
+    </div>
+
+    <div class="tabs-container">
+      <button class="tab-btn active" id="tab-order" onclick="switchTab('order')"><span class="tab-num" id="tab-num-order">-</span>Order</button>
+      <button class="tab-btn" id="tab-visuals" onclick="switchTab('visuals')"><span class="tab-num">2</span>Visuals</button>
+      <button class="tab-btn" id="tab-colour" onclick="switchTab('colour')"><span class="tab-num">1</span>Colour</button>
+      <button class="tab-btn" id="tab-summary" onclick="switchTab('summary')"><span class="tab-num">4</span>Summary</button>
+    </div>
+
+    <div class="info-box">
+      <ul>
+        <li>Drag and drop items to set reading order</li>
+        <li>Click links to locate elements on the slide</li>
+      </ul>
+    </div>
+
+    <div id="finishing-check" class="finishing-loader-container">
+      <div class="finishing-spinner"></div>
+      <span>Finishing check</span>
+    </div>
+
+    <div id="sortable-list">
+      <div class="loading-state">
+        <div class="dots">●●</div>
+        <div>Checking slide</div>
+      </div>
+    </div>
+
+    <div id="ai-order-suggestion" class="ai-suggestion-box">
+       <strong>
+        <svg width="16" height="15" viewBox="0 0 16 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7 1C7 0.447715 7.44772 0 8 0C8.55228 0 9 0.447715 9 1V2C9 2.55228 8.55228 3 8 3C7.44772 3 7 2.55228 7 2V1Z" fill="#F8C200"/>
+        <path d="M15 7C15.5523 7 16 7.44772 16 8C16 8.55228 15.5523 9 15 9H14C13.4477 9 13 8.55228 13 8C13 7.44772 13.4477 7 14 7H15Z" fill="#F8C200"/>
+        <path d="M2 7C2.55228 7 3 7.44772 3 8C3 8.55228 2.55228 9 2 9H1C0.447715 9 -2.41411e-08 8.55228 0 8C2.41411e-08 7.44772 0.447715 7 1 7H2Z" fill="#F8C200"/>
+        <path d="M12.1213 2.99999C11.7308 3.39051 11.7308 4.02368 12.1213 4.4142C12.5118 4.80473 13.145 4.80473 13.5355 4.4142L14.2426 3.70709C14.6332 3.31657 14.6332 2.68341 14.2426 2.29288C13.8521 1.90236 13.2189 1.90236 12.8284 2.29288L12.1213 2.99999Z" fill="#F8C200"/>
+        <path d="M3.82843 2.99999C4.21895 3.39051 4.21895 4.02368 3.82843 4.4142C3.4379 4.80473 2.80474 4.80473 2.41421 4.4142L1.70711 3.70709C1.31658 3.31657 1.31658 2.68341 1.70711 2.29288C2.09763 1.90236 2.7308 1.90236 3.12132 2.29288L3.82843 2.99999Z" fill="#F8C200"/>
+        <path d="M4 8C4 9.48057 4.8044 10.7733 6 11.4649V13C6 14.1046 6.89543 15 8 15C9.10457 15 10 14.1046 10 13V11.4649C11.1956 10.7733 12 9.48057 12 8C12 5.79086 10.2091 4 8 4C5.79086 4 4 5.79086 4 8Z" fill="#F8C200"/>
+        </svg>
+         Suggested order
+       </strong>
+       <span id="ai-order-text"><em>AI is analyzing layout...</em></span>
+    </div>
+
+    <div class="bottom-action-area">
+      <span class="link-next">Go to next slide</span>
+    </div>
+
+    <script>
+      let currentSlideData = [];
+      let draggedItem = null;
+      let activeSlideId = null;
+      let hasValidTitle = false;
+      let aiSuggestedOrderIds = []; 
+
+      let currentTab = 'order';
+      
+      // Dynamic Tab Counters
+      let titleAlertActive = false;
+      let orderAlertActive = false;
+      let currentSuggestedOrderString = "";
+      let currentSuggestedTitle = "";
+
+      function updateOrderTabCounter() {
+        let count = 0;
+        if (titleAlertActive) count++;
+        if (orderAlertActive) count++;
+        document.getElementById('tab-num-order').innerText = count;
+        
+        let activeTab = document.querySelector('.tab-btn.active');
+        if (activeTab) {
+           activeTab.classList.remove('success-state', 'error-state');
+           
+           if (count === 0 && !activeTab.classList.contains('loading-ai')) {
+             activeTab.classList.add('success-state'); // 0 issues = Green
+           } else if (!hasValidTitle && !activeTab.classList.contains('loading-ai')) {
+             activeTab.classList.add('error-state'); // Title entirely missing = Red
+           }
+        }
+      }
+
+      function loadData() {
+        let suggestionBox = document.getElementById('ai-order-suggestion');
+        suggestionBox.style.display = 'none';
+        
+        suggestionBox.className = 'ai-suggestion-box';
+        suggestionBox.innerHTML = `
+           <strong>
+            <svg width="16" height="15" viewBox="0 0 16 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7 1C7 0.447715 7.44772 0 8 0C8.55228 0 9 0.447715 9 1V2C9 2.55228 8.55228 3 8 3C7.44772 3 7 2.55228 7 2V1Z" fill="#F8C200"/>
+            <path d="M15 7C15.5523 7 16 7.44772 16 8C16 8.55228 15.5523 9 15 9H14C13.4477 9 13 8.55228 13 8C13 7.44772 13.4477 7 14 7H15Z" fill="#F8C200"/>
+            <path d="M2 7C2.55228 7 3 7.44772 3 8C3 8.55228 2.55228 9 2 9H1C0.447715 9 -2.41411e-08 8.55228 0 8C2.41411e-08 7.44772 0.447715 7 1 7H2Z" fill="#F8C200"/>
+            <path d="M12.1213 2.99999C11.7308 3.39051 11.7308 4.02368 12.1213 4.4142C12.5118 4.80473 13.145 4.80473 13.5355 4.4142L14.2426 3.70709C14.6332 3.31657 14.6332 2.68341 14.2426 2.29288C13.8521 1.90236 13.2189 1.90236 12.8284 2.29288L12.1213 2.99999Z" fill="#F8C200"/>
+            <path d="M3.82843 2.99999C4.21895 3.39051 4.21895 4.02368 3.82843 4.4142C3.4379 4.80473 2.80474 4.80473 2.41421 4.4142L1.70711 3.70709C1.31658 3.31657 1.31658 2.68341 1.70711 2.29288C2.09763 1.90236 2.7308 1.90236 3.12132 2.29288L3.82843 2.99999Z" fill="#F8C200"/>
+            <path d="M4 8C4 9.48057 4.8044 10.7733 6 11.4649V13C6 14.1046 6.89543 15 8 15C9.10457 15 10 14.1046 10 13V11.4649C11.1956 10.7733 12 9.48057 12 8C12 5.79086 10.2091 4 8 4C5.79086 4 4 5.79086 4 8Z" fill="#F8C200"/>
+            </svg>
+             Suggested order
+           </strong>
+           <span id="ai-order-text"><em>AI is analyzing layout...</em></span>
+        `;
+        
+        aiSuggestedOrderIds = []; 
+        titleAlertActive = false;
+        orderAlertActive = false;
+        document.getElementById('tab-num-order').innerText = "-"; 
+        
+        document.getElementById('sortable-list').innerHTML = `
+          <div class="loading-state">
+            <div class="dots">●●</div>
+            <div>Checking slide</div>
+          </div>`;
+        google.script.run.withSuccessHandler(renderData).getCurrentSlideData();
+      }
+
+      function injectTitleWarningHTML(isMissingTitle) {
+        let warningHTML = `
+            <div class="card-wrapper" style="margin-bottom: 8px;">
+              <div class="card missing-title">
+                <div class="card-content missing-title-content">
+                  <span>${isMissingTitle ? "No slide [Title]" : "Low relevance [Title]"}</span>
+                  <button class="btn-add-inline" onclick="injectTitle()">Add</button>
+                </div>
+              </div>
+              <div class="ai-inline error-state" style="border-left: 2px solid ${isMissingTitle ? '#D93025' : '#FFBC27'}">
+                <span>
+                <svg width="16" height="15" viewBox="0 0 16 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7 1C7 0.447715 7.44772 0 8 0C8.55228 0 9 0.447715 9 1V2C9 2.55228 8.55228 3 8 3C7.44772 3 7 2.55228 7 2V1Z" fill="#F8C200"/>
+                  <path d="M15 7C15.5523 7 16 7.44772 16 8C16 8.55228 15.5523 9 15 9H14C13.4477 9 13 8.55228 13 8C13 7.44772 13.4477 7 14 7H15Z" fill="#F8C200"/>
+                  <path d="M2 7C2.55228 7 3 7.44772 3 8C3 8.55228 2.55228 9 2 9H1C0.447715 9 -2.41411e-08 8.55228 0 8C2.41411e-08 7.44772 0.447715 7 1 7H2Z" fill="#F8C200"/>
+                  <path d="M12.1213 2.99999C11.7308 3.39051 11.7308 4.02368 12.1213 4.4142C12.5118 4.80473 13.145 4.80473 13.5355 4.4142L14.2426 3.70709C14.6332 3.31657 14.6332 2.68341 14.2426 2.29288C13.8521 1.90236 13.2189 1.90236 12.8284 2.29288L12.1213 2.99999Z" fill="#F8C200"/>
+                  <path d="M3.82843 2.99999C4.21895 3.39051 4.21895 4.02368 3.82843 4.4142C3.4379 4.80473 2.80474 4.80473 2.41421 4.4142L1.70711 3.70709C1.31658 3.31657 1.31658 2.68341 1.70711 2.29288C2.09763 1.90236 2.7308 1.90236 3.12132 2.29288L3.82843 2.99999Z" fill="#F8C200"/>
+                  <path d="M4 8C4 9.48057 4.8044 10.7733 6 11.4649V13C6 14.1046 6.89543 15 8 15C9.10457 15 10 14.1046 10 13V11.4649C11.1956 10.7733 12 9.48057 12 8C12 5.79086 10.2091 4 8 4C5.79086 4 4 5.79086 4 8Z" fill="#F8C200"/>
+                </svg>
+                  Suggestion: <em id="ai-title-suggestion">Loading AI...</em>
+                </span>
+              </div>
+            </div>`;
+            
+          let container = document.getElementById('dynamic-title-warning');
+          if(container) {
+             container.innerHTML = warningHTML;
+             titleAlertActive = true;
+             updateOrderTabCounter();
+          }
+      }
+
+      function renderData(data) {
+        if (data.error) {
+          document.getElementById('sortable-list').innerHTML = `<div style="color: red;">${data.error}</div>`;
+          document.getElementById('tab-num-order').innerText = "0";
+          return;
+        }
+        
+        currentSlideData = data.elements; 
+        activeSlideId = data.slideId;
+        
+        document.getElementById('slide-display').innerHTML = `<span class="slide-current">Slide ${data.slideNumber}</span> <span class="slide-count">of ${data.totalSlides}</span>`;
+
+        if (currentTab === 'visuals') {
+           renderVisualsTab();
+           return; // Stop the rest of the Order tab from rendering
+        }
+        
+        var html = "";
+        
+        hasValidTitle = (data.slideTitle && 
+                         data.slideTitle !== "[Empty Title]" && 
+                         data.slideTitle !== "Enter Title Here");
+
+        if (!hasValidTitle) {
+          html += `
+            <div class="card-wrapper" id="title-card-wrapper" data-id="missing-title-id">
+              <div class="card missing-title">
+                <div class="card-content missing-title-content">
+                  <span>Title missing</span>
+                  <button class="btn-add-inline" onclick="injectTitle()">Add</button>
+                </div>
+              </div>
+            </div>`;
+        }
+
+        let displayIndex = 1; // NEW: Dynamic counter
+        
+        data.elements.forEach(function(el) {
+          if (el.isTitle && !hasValidTitle) return;
+          
+          // NEW: Hide decorative items from the Order Tab so they act like true backgrounds!
+          if (el.title === 'Decorative Image' || el.title === 'Decorative Shape') return;
+          
+          var displayTitle = el.isTitle ? `[Title] ${el.title.replace('Text: "', '').replace('"', '')}` : el.title;
+          var wrapperIdAttr = (el.isTitle && hasValidTitle) ? 'id="title-card-wrapper"' : '';
+          
+          html += `
+          <div class="card-wrapper" data-id="${el.id}" ${wrapperIdAttr}>
+            <div class="card" draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
+              <div class="card-number">${displayIndex}</div>
+              <div class="card-content">
+                <span class="card-title" onclick="selectItem('${el.id}')">${displayTitle}</span>
+              </div>
+              <div class="drag-handle">⋮⋮</div>
+            </div>
+          </div>`;
+          
+          displayIndex++; // Increase the counter for the next visible item
+        });
+        
+        document.getElementById('sortable-list').innerHTML = html;
+
+        document.getElementById('ai-order-suggestion').style.display = 'none';
+        
+        document.getElementById('finishing-check').style.display = 'flex';
+        document.querySelector('.tab-btn.active').classList.add('loading-ai');
+        
+        let payload = { slideId: activeSlideId, elements: currentSlideData };
+        google.script.run.withSuccessHandler(populateAiSuggestions).analyzeOrderAndTitle(payload);
+      }
+
+      function populateAiSuggestions(aiResponse) {
+        try {
+          document.getElementById('finishing-check').style.display = 'none';
+          document.querySelector('.tab-btn.active').classList.remove('loading-ai');
+
+          let cleanResponse = aiResponse.replace(/```json/gi, '').replace(/```/g, '').trim();
+          let aiData = JSON.parse(cleanResponse);
+          
+          if (aiData.error) {
+             throw new Error(aiData.error);
+          }
+          
+          currentSuggestedOrderString = aiData.suggested_order_string;
+          currentSuggestedTitle = aiData.suggested_title;
+          document.getElementById('ai-order-text').innerText = currentSuggestedOrderString;
+          
+          let isLowConfidence = aiData.title_confidence_score < 60;
+          let titleWrapper = document.getElementById('title-card-wrapper');
+             
+          if (titleWrapper) {
+             let existingBox = document.getElementById('injected-ai-suggestion');
+             if(existingBox) existingBox.remove();
+             
+             titleWrapper.classList.add('has-suggestion');
+             let suggestionDiv = document.createElement('div');
+             suggestionDiv.id = 'injected-ai-suggestion';
+             
+             if (!hasValidTitle) {
+                suggestionDiv.className = 'ai-inline-error';
+                suggestionDiv.innerHTML = `<span>Suggested <em>${aiData.suggested_title}</em></span>`;
+                titleAlertActive = true;
+             } else if (isLowConfidence) {
+                suggestionDiv.className = 'ai-inline-suggestion';
+                suggestionDiv.innerHTML = `<span>Suggested <em>${aiData.suggested_title}</em></span>`;
+                titleAlertActive = true;
+             } else {
+                suggestionDiv.className = 'ai-inline-success';
+                suggestionDiv.innerHTML = `<span>Descriptive title</span>`;
+                titleAlertActive = false;
+             }
+             
+             titleWrapper.appendChild(suggestionDiv);
+             updateOrderTabCounter();
+          }
+
+          if (aiData.suggested_order_ids && Array.isArray(aiData.suggested_order_ids)) {
+            aiSuggestedOrderIds = aiData.suggested_order_ids;
+            checkOrderMatch(); 
+          }
+        } catch(e) {
+          console.error("AI Parse Error:", e, aiResponse);
+          document.getElementById('finishing-check').style.display = 'none';
+          document.querySelector('.tab-btn.active').classList.remove('loading-ai');
+
+          // NEW: Actually display the error on the screen so you know the API failed
+          let suggestionBox = document.getElementById('ai-order-suggestion');
+          suggestionBox.className = 'ai-suggestion-box'; 
+          suggestionBox.innerHTML = `
+            <strong style="display:flex; align-items:center; gap:8px; margin-bottom:4px; font-weight:500; color:#C55353;">
+              ⚠️ AI Connection Error
+            </strong>
+            <span style="font-weight:400; line-height:1.3;">${e.message || "The AI failed to process this slide."}</span>
+          `;
+          suggestionBox.style.display = 'block';
+          
+          orderAlertActive = true;
+          updateOrderTabCounter();
+        }
+      }
+
+      function checkOrderMatch() {
+        if (!aiSuggestedOrderIds || aiSuggestedOrderIds.length === 0) return;
+        
+        let currentDomIds = Array.from(document.querySelectorAll('.card-wrapper[data-id]')).map(c => c.getAttribute('data-id'));
+        let isMatch = JSON.stringify(currentDomIds) === JSON.stringify(aiSuggestedOrderIds);
+        
+        let suggestionBox = document.getElementById('ai-order-suggestion');
+        
+        if (isMatch) {
+          suggestionBox.className = 'ai-success-box';
+          suggestionBox.innerHTML = `<span>Logical reading order</span>`;
+          orderAlertActive = false; 
+        } else {
+          suggestionBox.className = 'ai-suggestion-box';
+          suggestionBox.innerHTML = `
+            <strong style="display:flex; align-items:center; gap:8px; margin-bottom:4px; font-weight:500;">
+              <svg width="16" height="15" viewBox="0 0 16 15" fill="none" style="flex-shrink:0;"><path d="M7 1C7 0.447715 7.44772 0 8 0C8.55228 0 9 0.447715 9 1V2C9 2.55228 8.55228 3 8 3C7.44772 3 7 2.55228 7 2V1Z" fill="#F8C200"/><path d="M15 7C15.5523 7 16 7.44772 16 8C16 8.55228 15.5523 9 15 9H14C13.4477 9 13 8.55228 13 8C13 7.44772 13.4477 7 14 7H15Z" fill="#F8C200"/><path d="M2 7C2.55228 7 3 7.44772 3 8C3 8.55228 2.55228 9 2 9H1C0.447715 9 -2.41411e-08 8.55228 0 8C2.41411e-08 7.44772 0.447715 7 1 7H2Z" fill="#F8C200"/><path d="M12.1213 2.99999C11.7308 3.39051 11.7308 4.02368 12.1213 4.4142C12.5118 4.80473 13.145 4.80473 13.5355 4.4142L14.2426 3.70709C14.6332 3.31657 14.6332 2.68341 14.2426 2.29288C13.8521 1.90236 13.2189 1.90236 12.8284 2.29288L12.1213 2.99999Z" fill="#F8C200"/><path d="M3.82843 2.99999C4.21895 3.39051 4.21895 4.02368 3.82843 4.4142C3.4379 4.80473 2.80474 4.80473 2.41421 4.4142L1.70711 3.70709C1.31658 3.31657 1.31658 2.68341 1.70711 2.29288C2.09763 1.90236 2.7308 1.90236 3.12132 2.29288L3.82843 2.99999Z" fill="#F8C200"/><path d="M4 8C4 9.48057 4.8044 10.7733 6 11.4649V13C6 14.1046 6.89543 15 8 15C9.10457 15 10 14.1046 10 13V11.4649C11.1956 10.7733 12 9.48057 12 8C12 5.79086 10.2091 4 8 4C5.79086 4 4 5.79086 4 8Z" fill="#F8C200"/></svg>
+              Suggested order
+            </strong>
+            <span id="ai-order-text" style="font-weight:400; line-height:1.3;">${currentSuggestedOrderString}</span>
+          `;
+          orderAlertActive = true;
+        }
+        
+        suggestionBox.style.display = 'block';
+        updateOrderTabCounter();
+      }
+
+      function handleDragStart(e) { draggedItem = e.target.closest('.card-wrapper'); setTimeout(() => draggedItem.querySelector('.card').classList.add('dragging'), 0); }
+      function handleDragOver(e) { e.preventDefault(); }
+      
+      function handleDrop(e) {
+        e.preventDefault();
+        let targetWrapper = e.target.closest('.card-wrapper');
+        if (draggedItem && targetWrapper && draggedItem !== targetWrapper) {
+          let list = document.getElementById('sortable-list');
+          let items = Array.from(list.querySelectorAll('.card-wrapper'));
+          if (items.indexOf(draggedItem) < items.indexOf(targetWrapper)) {
+            targetWrapper.parentNode.insertBefore(draggedItem, targetWrapper.nextSibling);
+          } else {
+            targetWrapper.parentNode.insertBefore(draggedItem, targetWrapper);
+          }
+          
+        updateNumbers();
+          checkOrderMatch(); 
+          saveOrder();
+        }
+        if(draggedItem) draggedItem.querySelector('.card').classList.remove('dragging');
+      }
+
+      function updateNumbers() {
+        let items = document.querySelectorAll('.card-wrapper:not(.missing-title-wrapper)');
+        items.forEach((item, index) => {
+          let numBox = item.querySelector('.card-number');
+          if (numBox) numBox.innerText = index + 1;
+        });
+      }
+
+      function saveOrder() {
+        let newOrderIds = Array.from(document.querySelectorAll('.card-wrapper[data-id]')).map(c => c.getAttribute('data-id'));
+        
+        google.script.run.saveNewOrder(newOrderIds);
+      }
+
+      function selectItem(id) { google.script.run.selectElement(id); }
+      function injectTitle() { 
+        document.getElementById('sortable-list').innerHTML = `<div class="loading-state"><div class="dots">●●</div><div>Adding title</div></div>`;
+        google.script.run.withSuccessHandler(loadData).injectNativeTitle(currentSuggestedTitle); 
+      }
+
+      loadData(); // Your existing line that starts the initial load
+
+      // NEW: The Background Poller
+      // Checks every 2000 milliseconds (2 seconds) to see if the slide changed
+      setInterval(function() {
+        google.script.run.withSuccessHandler(function(newSlideId) {
+          // If we get an ID, we have an active ID, and they don't match...
+          if (newSlideId && activeSlideId && newSlideId !== activeSlideId) {
+            activeSlideId = newSlideId; // Update the memory so it doesn't loop
+            loadData(); // Auto-refresh the sidebar!
+          }
+        }).getActiveSlideIdOnly();
+      }, 2000); 
+
+      function renderVisualsTab() {
+        let html = `<div class="info-box">
+                      <ul>
+                        <li>Click to add Alt text to images and shapes</li>
+                        <li>Mark items as decorative to add to background</li>
+                      </ul>
+                    </div>`;
+        
+        html += `<div id="visuals-list" style="display: flex; flex-direction: column; gap: 8px;">`;
+        
+        currentSlideData.forEach(function(el) {
+          if (el.type === "IMAGE" || el.type === "SHAPE") {
+            if (el.isDecorative) return; 
+
+            let hasAlt = el.alt && el.alt.trim().length > 0;
+            
+            if (hasAlt) {
+              // GREEN SUCCESS CARD (With Edit Panel)
+              html += `
+              <div class="visual-card success-card" id="card-${el.id}">
+                <div class="visual-header">
+                  <span class="visual-title" onclick="selectItem('${el.id}')">${el.title}</span>
+                  <button class="btn-visual-action" onclick="toggleEditMode('${el.id}')">Edit</button>
+                </div>
+                <div class="visual-edit-panel" id="edit-panel-${el.id}" style="display:none; padding: 8px 12px; border-bottom: 1px solid #E0E0E0;">
+                   <textarea id="input-${el.id}" style="width: 100%; box-sizing: border-box; font-family: 'Inter', sans-serif; font-size: 11px; padding: 6px; border: 1px solid #235BCC; border-radius: 4px; resize: vertical; min-height: 40px;">${el.alt}</textarea>
+                   <div style="display: flex; justify-content: flex-end; gap: 4px; margin-top: 6px;">
+                     <button class="btn-visual-action" onclick="toggleEditMode('${el.id}')">Cancel</button>
+                     <button class="btn-visual-action primary" onclick="saveAltText('${el.id}')">Save</button>
+                   </div>
+                </div>
+                <div class="visual-status success-bg">
+                  <span style="font-size: 14px;">⭐</span> Descriptive Alt text
+                </div>
+              </div>`;
+            } else {
+              let defaultTitle = el.type === "IMAGE" ? "Image: Missing Alt text" : "Shape: Missing Alt text";
+              html += `
+              <div class="visual-card error-card" id="card-${el.id}">
+                <div class="visual-header">
+                  <span class="visual-title missing-text" onclick="selectItem('${el.id}')">${defaultTitle}</span>
+                  <button class="btn-visual-action primary" onclick="toggleEditMode('${el.id}')">Add</button>
+                </div>
+                <div class="visual-edit-panel" id="edit-panel-${el.id}" style="display:none; padding: 8px 12px; border-bottom: 1px solid #E0E0E0;">
+                   <textarea id="input-${el.id}" placeholder="Describe this item..." style="width: 100%; box-sizing: border-box; font-family: 'Inter', sans-serif; font-size: 11px; padding: 6px; border: 1px solid #235BCC; border-radius: 4px; resize: vertical; min-height: 40px;"></textarea>
+                   <div style="display: flex; justify-content: flex-end; gap: 4px; margin-top: 6px;">
+                     <button class="btn-visual-action" onclick="toggleEditMode('${el.id}')">Cancel</button>
+                     <button class="btn-visual-action primary" onclick="saveAltText('${el.id}')">Save</button>
+                   </div>
+                </div>
+                <div class="visual-controls">
+                  <input type="checkbox" class="decorative-checkbox" value="${el.id}" style="cursor: pointer; width: 14px; height: 14px; margin: 0;"> 
+                  <span>Mark as decorative?</span>
+                </div>
+                <div class="visual-status warning-bg" style="display: flex; flex-direction: column; align-items: flex-start; gap: 6px;">
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 14px;">💡</span> <strong>Suggested</strong>
+                  </div>
+                  <span id="ai-suggestion-${el.id}" style="font-style: italic; font-weight: 400; line-height: 1.3;">Loading AI analysis...</span>
+                  <button id="ai-apply-btn-${el.id}" class="btn-visual-action" style="display: none; align-self: flex-end;" onclick="applyAiSuggestion('${el.id}')">Use this description</button>
+                </div>
+              </div>`;
+            }
+          }
+        });
+        
+        html += `</div>`;
+        html += `<button onclick="triggerFlatten()" class="btn-add-background">Add decorative to background</button>`;
+        
+        document.getElementById('sortable-list').innerHTML = html;
+      }
+
+      function triggerFlatten() {
+        let checkboxes = document.querySelectorAll('.decorative-checkbox:checked');
+        let selectedIds = Array.from(checkboxes).map(cb => cb.value);
+        
+        if (selectedIds.length === 0) {
+          alert("Please select at least one item to flatten.");
+          return;
+        }
+
+        document.getElementById('sortable-list').innerHTML = `
+          <div class="loading-state">
+            <div class="dots">●●</div>
+            <div>Generating background... (This takes a few seconds)</div>
+          </div>`;
+
+        google.script.run
+          .withSuccessHandler(function(response) {
+            if (response.success) {
+               
+               // INSTANT CLEANUP: Ask the server to delete the temp slide in a fresh connection!
+               google.script.run.cleanupTempSlide(response.tempSlideId);
+
+               let stringifiedIds = JSON.stringify(selectedIds);
+
+               document.getElementById('sortable-list').innerHTML = `
+                  <div class="info-box" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap: 8px;">
+                     <strong style="color:#01934F; font-size: 14px;">Background Generated!</strong>
+                     
+                     <img src="${response.imageData}" style="width:100%; border:1px solid #ccc; border-radius:4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />
+                     
+                     <button onclick='applyImageToSlide("${response.imageData}", ${stringifiedIds})' style="background: #0B56CF; color: white; border: none; border-radius: 20px; padding: 8px 24px; font-weight: 500; cursor: pointer; width: 100%; margin-top: 8px;">
+                       Apply Automatically & Clean Up
+                     </button>
+
+                     <p style="font-size:11px; color:#666; margin:0; padding-top: 4px;">
+                       (Or right-click the image to save it manually)
+                     </p>
+                     <button onclick="loadData()" class="btn-pill-outline" style="margin-top:4px;">Back to Visuals List</button>
+                  </div>
+               `;
+            } else {
+               alert(response.error);
+               loadData();
+            }
+          })
+          .generateDecorativeBackground(activeSlideId, selectedIds);
+      }
+
+      function applyImageToSlide(dataUri, decorativeIds) {
+        document.getElementById('sortable-list').innerHTML = `
+          <div class="loading-state">
+            <div class="dots">●●</div>
+            <div>Applying background...</div>
+          </div>`;
+
+        google.script.run
+          .withSuccessHandler(function(res) {
+            if (res.success) {
+              loadData(); // Refreshes the sidebar to show the clean slide
+            } else {
+              alert(res.error);
+              loadData();
+            }
+          })
+          .applyFlattenedImage(activeSlideId, dataUri, decorativeIds);
+      }
+
+      function switchTab(tabName) {
+        if (currentTab === tabName) return; // Do nothing if already on this tab
+        currentTab = tabName;
+
+        // Visually highlight the active tab
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('tab-' + tabName).classList.add('active');
+
+        // Render the correct content
+        if (currentTab === 'order') {
+           loadData(); // Re-run the main data fetch for the Order tab
+        } else if (currentTab === 'visuals') {
+           document.getElementById('ai-order-suggestion').style.display = 'none'; // Hide order warnings
+           document.getElementById('finishing-check').style.display = 'none';
+           renderVisualsTab();
+           fetchAltTextSuggestions();
+        } else {
+           // Placeholder for Colour and Summary tabs
+           document.getElementById('ai-order-suggestion').style.display = 'none';
+           document.getElementById('sortable-list').innerHTML = `<div class="loading-state"><div>${tabName} tab coming soon!</div></div>`;
+        }
+      }
+
+      function toggleEditMode(id) {
+        let panel = document.getElementById('edit-panel-' + id);
+        if (panel.style.display === 'none') {
+          panel.style.display = 'block';
+          document.getElementById('input-' + id).focus(); // Auto-focus the text box
+        } else {
+          panel.style.display = 'none';
+        }
+      }
+
+      function saveAltText(id) {
+        let newText = document.getElementById('input-' + id).value;
+        
+        // Dim the card so the user knows it is saving
+        document.getElementById('card-' + id).style.opacity = '0.5';
+
+        // Send to backend
+        google.script.run
+          .withSuccessHandler(function(res) {
+            if (res.success) {
+              loadData(); // Success! Refresh the sidebar to instantly turn the card green
+            } else {
+              alert(res.error);
+              document.getElementById('card-' + id).style.opacity = '1';
+            }
+          })
+          .updateElementAltText(id, newText);
+      }
+
+      function fetchAltTextSuggestions() {
+        // Find all elements that are NOT decorative and are MISSING alt text
+        let itemsNeedingAlt = currentSlideData.filter(el => 
+          (el.type === "IMAGE" || el.type === "SHAPE") && !el.isDecorative && (!el.alt || el.alt.trim().length === 0)
+        );
+
+        if (itemsNeedingAlt.length === 0) return; // Everything has text!
+
+        let payload = {
+          slideId: activeSlideId,
+          elements: itemsNeedingAlt.map(el => ({ id: el.id, type: el.type, title: el.title }))
+        };
+
+        google.script.run.withSuccessHandler(populateAltTextSuggestions).generateAltTextSuggestions(payload);
+      }
+
+      function populateAltTextSuggestions(responseStr) {
+        try {
+          let cleanResponse = responseStr.replace(/```json/gi, '').replace(/```/g, '').trim();
+          let aiData = JSON.parse(cleanResponse);
+
+          if (aiData.error) throw new Error(aiData.error);
+
+          // Loop through the AI's dictionary and update the correct HTML cards
+          for (const [id, text] of Object.entries(aiData)) {
+            let suggestionSpan = document.getElementById('ai-suggestion-' + id);
+            if (suggestionSpan) {
+              suggestionSpan.innerText = text;
+              document.getElementById('ai-apply-btn-' + id).style.display = 'block'; // Reveal the button!
+            }
+          }
+        } catch (e) {
+          console.error("AI Alt Text Error", e);
+        }
+      }
+
+      function applyAiSuggestion(id) {
+         let suggestion = document.getElementById('ai-suggestion-' + id).innerText;
+         let inputBox = document.getElementById('input-' + id);
+         
+         inputBox.value = suggestion; // Move the text into the text box
+         
+         // Open the edit panel so the user can see it and save it
+         let panel = document.getElementById('edit-panel-' + id);
+         if (panel.style.display === 'none') {
+           toggleEditMode(id);
+         }
+      }
+
+    </script>
+  </body>
+</html>
