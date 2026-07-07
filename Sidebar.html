@@ -348,6 +348,10 @@
         background-color: #FAD2D2;
       }
 
+      .tab-btn.active.warning-state {
+        background-color: #FDE293;
+      }
+
       .ai-inline-error { 
         background-color: #FFEEEE; 
         padding: 8px 12px; 
@@ -1065,14 +1069,12 @@
       function saveAltText(id) {
         let newText = document.getElementById('input-' + id).value;
         
-        // Dim the card so the user knows it is saving
         document.getElementById('card-' + id).style.opacity = '0.5';
 
-        // Send to backend
         google.script.run
           .withSuccessHandler(function(res) {
             if (res.success) {
-              loadData(); // Success! Refresh the sidebar to instantly turn the card green
+              loadData(); 
             } else {
               alert(res.error);
               document.getElementById('card-' + id).style.opacity = '1';
@@ -1080,14 +1082,11 @@
           })
           .updateElementAltText(id, newText);
 
-        function saveAltText(id) {
-
         let card = document.getElementById('card-' + id);
         if (card) {
           card.classList.remove('error-card', 'warning-card');
           card.classList.add('success-card');
         }
-
         updateVisualsTabCounter();
       }
 
@@ -1195,6 +1194,13 @@
 
          let aiContainer = document.getElementById('ai-container-' + id);
          if (aiContainer) aiContainer.style.display = 'none';
+
+         let card = document.getElementById('card-' + id);
+         if (card) {
+           card.classList.remove('error-card', 'warning-card');
+           card.classList.add('success-card');
+         }
+         updateVisualsTabCounter();
       }
 
       function updateVisualsTabCounter() {
@@ -1225,35 +1231,25 @@
         });
 
         if (visualsTab) {
-
           let displayNum = totalIssues === 0 ? '-' : totalIssues;
-          let countSpan = visualsTab.querySelector('span, b, strong, .tab-count'); 
+          let countSpan = visualsTab.querySelector('span, b, strong, .tab-count, .tab-num'); 
           if (countSpan) {
             countSpan.innerText = displayNum;
-          } else {
-
-            visualsTab.innerHTML = visualsTab.innerHTML.replace(/[0-9]+|-/, displayNum);
           }
 
+          // Reset classes
           visualsTab.style.backgroundColor = ''; 
-          visualsTab.classList.remove('tab-error', 'tab-warning');
+          visualsTab.classList.remove('error-state', 'warning-state', 'success-state');
 
+          // Apply dynamic colors!
           if (errorCount > 0) {
-            visualsTab.style.backgroundColor = '#FCE8E8'; 
-            visualsTab.classList.add('tab-error');
+            visualsTab.classList.add('error-state'); // RED (At least 1 image error)
           } else if (warningCount > 0) {
-            visualsTab.style.backgroundColor = '#FDE293'; 
-            visualsTab.classList.add('tab-warning');
+            visualsTab.classList.add('warning-state'); // YELLOW (Only shape warnings)
+          } else if (totalIssues === 0 && !visualsTab.classList.contains('loading-ai')) {
+            visualsTab.classList.add('success-state'); // GREEN (All clear)
           }
         }
-
-        let card = document.getElementById('card-' + id);
-        if (card) {
-          card.classList.remove('error-card', 'warning-card');
-          card.classList.add('success-card');
-        }
-
-        updateVisualsTabCounter();
       }
 
     </script>
