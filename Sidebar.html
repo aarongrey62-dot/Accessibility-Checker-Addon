@@ -385,7 +385,7 @@
       .visual-card { border: 1px solid #E0E0E0; border-left: 3px solid #1A73E8; border-radius: 4px; background: #fff; margin-bottom: 8px; overflow: hidden; display: flex; flex-direction: column; }
       .visual-card.success-card { border-left-color: #01934F; }
       .visual-card.error-card { border-left-color: #C55353; }
-      .visual-card.warning-card { border-left-color: #F8C200; }
+      .visual-card.warning-card { border-left-color: #FFBC27; }
 
       .visual-header { padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E0E0E0; background: #fff;}
       .visual-title { color: #1A73E8; text-decoration: underline; cursor: pointer; font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%; }
@@ -873,11 +873,15 @@
                 </div>
               </div>`;
             } else {
-              let defaultTitle = el.type === "IMAGE" ? "Image: Missing Alt text" : "Shape: Missing Alt text";
+              let isImage = el.type === "IMAGE";
+              let defaultTitle = isImage ? "Image: Missing Alt text" : "Shape: Missing Alt text";
+              let cardClass = isImage ? "error-card" : "warning-card";
+              let titleClass = isImage ? "missing-text" : "";
+
               html += `
-              <div class="visual-card error-card" id="card-${el.id}">
+              <div class="visual-card ${cardClass}" id="card-${el.id}">
                 <div class="visual-header">
-                  <span class="visual-title missing-text" onclick="selectItem('${el.id}')">${defaultTitle}</span>
+                  <span class="visual-title ${titleClass}" onclick="selectItem('${el.id}')">${defaultTitle}</span>
                   <div style="display: flex; gap: 4px; align-items: center;">
                     <button class="btn-visual-action primary btn-action-sm" id="action-btn-${el.id}" onclick="toggleEditMode('${el.id}')">Add</button>
                     <button class="btn-visual-action primary btn-action-sm" id="save-btn-${el.id}" style="display: none;" onclick="saveAltText('${el.id}')">Save</button>
@@ -1100,14 +1104,14 @@
                 container.innerHTML = `
                   <div style="display: flex; align-items: center; gap: 6px; color: #1F1F1F;">
                     <i class="icon-suggest-spark"></i>
-                    <span><strong>Suggested</strong> Mark as decorative</span>
+                    <span><strong>Suggested</strong> <span style="font-weight: 400;">Element is purely decorative</span></span>
                   </div>
                 `;
               } else {
                 container.innerHTML = `
                   <div style="display: flex; align-items: center; gap: 6px; color: #1F1F1F;">
                     <i class="icon-suggest-spark"></i>
-                    <span><strong>Suggested</strong> Provide custom alt text</span>
+                    <span><strong>Suggested</strong> <span style="font-weight: 400;">Provide custom alt text</span></span>
                   </div>
                 `;
               }
