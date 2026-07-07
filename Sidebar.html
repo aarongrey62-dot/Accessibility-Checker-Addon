@@ -922,6 +922,7 @@
         html += `<button onclick="triggerFlatten()" class="btn-add-background">Add decorative to background</button>`;
         
         document.getElementById('sortable-list').innerHTML = html;
+      updateVisualsTabCounter();
       }
 
       function triggerFlatten() {
@@ -1028,14 +1029,14 @@
           
           document.getElementById('input-' + id).focus(); 
         } else {
-          // CLOSING EDIT MODE (Cancel clicked)
+
           panel.style.display = 'none';
           if (actionBtn) actionBtn.style.display = 'inline-flex'; 
           if (saveBtn) saveBtn.style.display = 'none';            
 
-          // NEW: Restore the AI box when backing out of edit mode
           if (aiContainer) aiContainer.style.display = 'flex';
         }
+      updateVisualsTabCounter();
       }
 
       function toggleDecorative(id, isChecked) {
@@ -1078,6 +1079,16 @@
             }
           })
           .updateElementAltText(id, newText);
+
+        function saveAltText(id) {
+
+        let card = document.getElementById('card-' + id);
+        if (card) {
+          card.classList.remove('error-card', 'warning-card');
+          card.classList.add('success-card');
+        }
+
+        updateVisualsTabCounter();
       }
 
       function fetchAltTextSuggestions() {
@@ -1184,6 +1195,65 @@
 
          let aiContainer = document.getElementById('ai-container-' + id);
          if (aiContainer) aiContainer.style.display = 'none';
+      }
+
+      function updateVisualsTabCounter() {
+        let errorCount = 0;
+        let warningCount = 0;
+        
+        let visualCards = document.querySelectorAll('#visuals-list .visual-card');
+        
+        visualCards.forEach(card => {
+          // If the card is marked decorative or has been successfully resolved, skip it
+          if (!card.classList.contains('is-decorative') && !card.classList.contains('success-card')) {
+            if (card.classList.contains('error-card')) {
+              errorCount++; // Images missing alt text
+            } else if (card.classList.contains('warning-card')) {
+              warningCount++; // Shapes missing alt text
+            }
+          }
+        });
+
+        let totalIssues = errorCount + warningCount;
+        
+        let tabs = document.querySelectorAll('.tab-btn');
+        let visualsTab = null;
+        tabs.forEach(tab => {
+          if (tab.innerText.includes('Visuals')) {
+            visualsTab = tab;
+          }
+        });
+
+        if (visualsTab) {
+
+          let displayNum = totalIssues === 0 ? '-' : totalIssues;
+          let countSpan = visualsTab.querySelector('span, b, strong, .tab-count'); 
+          if (countSpan) {
+            countSpan.innerText = displayNum;
+          } else {
+
+            visualsTab.innerHTML = visualsTab.innerHTML.replace(/[0-9]+|-/, displayNum);
+          }
+
+          visualsTab.style.backgroundColor = ''; 
+          visualsTab.classList.remove('tab-error', 'tab-warning');
+
+          if (errorCount > 0) {
+            visualsTab.style.backgroundColor = '#FCE8E8'; 
+            visualsTab.classList.add('tab-error');
+          } else if (warningCount > 0) {
+            visualsTab.style.backgroundColor = '#FDE293'; 
+            visualsTab.classList.add('tab-warning');
+          }
+        }
+
+        let card = document.getElementById('card-' + id);
+        if (card) {
+          card.classList.remove('error-card', 'warning-card');
+          card.classList.add('success-card');
+        }
+
+        updateVisualsTabCounter();
       }
 
     </script>
