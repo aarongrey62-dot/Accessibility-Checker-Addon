@@ -414,6 +414,28 @@
         flex-shrink: 0;
       }
 
+      .icon-success-check {
+        display: inline-block;
+        width: 16px;
+        height: 15px;
+        background-image: url("data:image/svg+xml,%3Csvg width='12' height='11' viewBox='0 0 12 11' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.29354 11C9.1852 11 9.07848 10.9748 8.9826 10.9264L5.99933 9.42226L3.01607 10.9239C2.90587 10.9794 2.78167 11.0043 2.6575 10.9957C2.53332 10.9871 2.41413 10.9454 2.31341 10.8753C2.21268 10.8051 2.13443 10.7094 2.08751 10.5989C2.04059 10.4883 2.02687 10.3674 2.04789 10.2498L2.61772 7.06494L0.201616 4.80994C0.11239 4.72662 0.0492819 4.62102 0.019435 4.5051C-0.010412 4.38918 -0.00580575 4.26756 0.0327325 4.15402C0.0712708 4.04048 0.142202 3.93955 0.237496 3.86265C0.332791 3.78575 0.448643 3.73595 0.571938 3.71889L3.90818 3.25395L5.40081 0.356223C5.45597 0.249239 5.54125 0.15918 5.64702 0.0962285C5.75279 0.0332773 5.87483 -5.42346e-05 5.99933 2.84596e-06C6.12425 -0.000354269 6.24676 0.0329038 6.35292 0.0959924C6.45909 0.159081 6.54464 0.249466 6.59986 0.356863L8.09182 3.25395L11.4281 3.71889C11.5514 3.73595 11.6672 3.78575 11.7625 3.86265C11.8578 3.93955 11.9287 4.04048 11.9673 4.15402C12.0058 4.26756 12.0104 4.38918 11.9806 4.5051C11.9507 4.62102 11.8876 4.72662 11.7984 4.80994L9.38428 7.06558L9.95411 10.2505C9.9709 10.3426 9.96639 10.4372 9.94089 10.5275C9.91539 10.6178 9.86953 10.7017 9.80654 10.7732C9.74355 10.8446 9.66496 10.902 9.57632 10.9412C9.48768 10.9804 9.39115 11.0005 9.29354 11Z' fill='%2358A688'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+        flex-shrink: 0;
+      }
+
+      .icon-suggest-spark {
+        display: inline-block;
+        width: 16px;
+        height: 15px;
+        background-image: url("data:image/svg+xml,%3Csvg width='16' height='15' viewBox='0 0 16 15' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 1C7 0.447715 7.44772 0 8 0C8.55228 0 9 0.447715 9 1V2C9 2.55228 8.55228 3 8 3C7.44772 3 7 2.55228 7 2V1Z' fill='%23F8C200'/%3E%3Cpath d='M15 7C15.5523 7 16 7.44772 16 8C16 8.55228 15.5523 9 15 9H14C13.4477 9 13 8.55228 13 8C13 7.44772 13.4477 7 14 7H15Z' fill='%23F8C200'/%3E%3Cpath d='M2 7C2.55228 7 3 7.44772 3 8C3 8.55228 2.55228 9 2 9H1C0.447715 9 -2.41411e-08 8.55228 0 8C2.41411e-08 7.44772 0.447715 7 1 7H2Z' fill='%23F8C200'/%3E%3Cpath d='M12.1213 2.99999C11.7308 3.39051 11.7308 4.02368 12.1213 4.4142C12.5118 4.80473 13.145 4.80473 13.5355 4.4142L14.2426 3.70709C14.6332 3.31657 14.6332 2.68341 14.2426 2.29288C13.8521 1.90236 13.2189 1.90236 12.8284 2.29288L12.1213 2.99999Z' fill='%23F8C200'/%3E%3Cpath d='M3.82843 2.99999C4.21895 3.39051 4.21895 4.02368 3.82843 4.4142C3.4379 4.80473 2.80474 4.80473 2.41421 4.4142L1.70711 3.70709C1.31658 3.31657 1.31658 2.68341 1.70711 2.29288C2.09763 1.90236 2.7308 1.90236 3.12132 2.29288L3.82843 2.99999Z' fill='%23F8C200'/%3E%3Cpath d='M4 8C4 9.48057 4.8044 10.7733 6 11.4649V13C6 14.1046 6.89543 15 8 15C9.10457 15 10 14.1046 10 13V11.4649C11.1956 10.7733 12 9.48057 12 8C12 5.79086 10.2091 4 8 4C5.79086 4 4 5.79086 4 8Z' fill='%23F8C200'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+        flex-shrink: 0;
+      }
+
       .btn-action-sm {
         width: 56px !important;
         height: 24px !important;
@@ -813,7 +835,13 @@
         
         html += `<div id="visuals-list" style="display: flex; flex-direction: column; gap: 8px;">`;
         
-        currentSlideData.forEach(function(el) {
+        let visualsOnly = currentSlideData.slice().sort((a, b) => {
+          if (a.type === "IMAGE" && b.type !== "IMAGE") return -1;
+          if (a.type !== "IMAGE" && b.type === "IMAGE") return 1;
+          return 0;
+        });
+
+        visualsOnly.forEach(function(el) {
           if (el.type === "IMAGE" || el.type === "SHAPE") {
             if (el.isDecorative) return; 
 
@@ -829,7 +857,7 @@
                 <div class="visual-header">
                   <span class="visual-title" onclick="selectItem('${el.id}')">${el.title}</span>
                   <div style="display: flex; gap: 4px; align-items: center;">
-                    <button class="btn-visual-action btn-action-sm" id="action-btn-${el.id}" onclick="toggleEditMode('${el.id}')">Edit</button>
+                    <button class="btn-pill-outline btn-action-sm" id="action-btn-${el.id}" onclick="toggleEditMode('${el.id}')">Edit</button>
                     <button class="btn-visual-action primary btn-action-sm" id="save-btn-${el.id}" style="display: none;" onclick="saveAltText('${el.id}')">Save</button>
                   </div>
                 </div>
@@ -840,7 +868,8 @@
                    </div>
                 </div>
                 <div class="visual-status success-bg">
-                  <span style="font-size: 14px;">⭐</span> Descriptive Alt text
+                  <i class="icon-success-check"></i>
+                  <span>Descriptive text</span>
                 </div>
               </div>`;
             } else {
@@ -865,9 +894,7 @@
                   <span>Mark as decorative?</span>
                 </div>
                 
-                <div class="visual-status warning-bg" id="ai-container-${el.id}" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
-                  <span style="color: #666; font-style: italic; font-weight: 400;">Analyzing layout with AI...</span>
-                </div>
+                <div class="visual-status" id="ai-container-${el.id}" style="display: none; flex-direction: column; align-items: flex-start; gap: 4px;"></div>
               </div>`;
             }
           }
@@ -973,19 +1000,23 @@
         let panel = document.getElementById('edit-panel-' + id);
         let actionBtn = document.getElementById('action-btn-' + id);
         let saveBtn = document.getElementById('save-btn-' + id);
+        let aiContainer = document.getElementById('ai-container-' + id); // Look up AI box
 
         if (panel.style.display === 'none') {
           // OPENING EDIT MODE
           panel.style.display = 'block';
-          if (actionBtn) actionBtn.style.display = 'none';    // Hide Add/Edit
-          if (saveBtn) saveBtn.style.display = 'inline-flex'; // Show Save
+          if (actionBtn) actionBtn.style.display = 'none';    
+          if (saveBtn) saveBtn.style.display = 'inline-flex'; 
           
           document.getElementById('input-' + id).focus(); 
         } else {
           // CLOSING EDIT MODE (Cancel clicked)
           panel.style.display = 'none';
-          if (actionBtn) actionBtn.style.display = 'inline-flex'; // Restore Add/Edit
-          if (saveBtn) saveBtn.style.display = 'none';            // Hide Save
+          if (actionBtn) actionBtn.style.display = 'inline-flex'; 
+          if (saveBtn) saveBtn.style.display = 'none';            
+
+          // NEW: Restore the AI box when backing out of edit mode
+          if (aiContainer) aiContainer.style.display = 'flex';
         }
       }
 
@@ -1009,12 +1040,17 @@
       }
 
       function fetchAltTextSuggestions() {
-        // Find all elements that are NOT decorative and are MISSING alt text
         let itemsNeedingAlt = currentSlideData.filter(el => 
           (el.type === "IMAGE" || el.type === "SHAPE") && !el.isDecorative && (!el.alt || el.alt.trim().length === 0)
         );
 
-        if (itemsNeedingAlt.length === 0) return; // Everything has text!
+        if (itemsNeedingAlt.length === 0) {
+           document.getElementById('finishing-check').style.display = 'none';
+           return; 
+        }
+
+        document.getElementById('finishing-check').style.display = 'flex';
+        document.querySelector('.tab-btn.active').classList.add('loading-ai');
 
         let payload = {
           slideId: activeSlideId,
@@ -1025,6 +1061,10 @@
       }
 
       function populateAltTextSuggestions(responseStr) {
+        document.getElementById('finishing-check').style.display = 'none';
+        let activeTabBtn = document.querySelector('.tab-btn.active');
+        if (activeTabBtn) activeTabBtn.classList.remove('loading-ai');
+
         try {
           let cleanResponse = responseStr.replace(/```json/gi, '').replace(/```/g, '').trim();
           let aiData = JSON.parse(cleanResponse);
@@ -1035,35 +1075,39 @@
             let container = document.getElementById('ai-container-' + id);
             if (!container) continue;
 
+            container.style.display = 'flex';
             container.classList.remove('warning-bg', 'error-bg');
 
             if (data.type === "IMAGE") {
-              // IMAGES: Red Alert Style (Matches Tab 1)
               container.classList.add('error-bg');
               container.style.backgroundColor = '#FFEEEE'; 
               
               container.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 6px; color: #1F1F1F;">
+                <div style="display: flex; align-items: center; gap: 6px; color: #1F1F1F; margin-bottom: 2px;">
                   <i class="icon-alert-triangle"></i>
                   <strong>Suggested text</strong>
                 </div>
-                <span id="ai-text-holder-${id}" style="font-style: italic; font-weight: 400; line-height: 1.3; color: #1F1F1F; display: block; margin-top: 4px;">${data.suggestion}</span>
-                <button class="btn-pill-outline btn-action-sm" style="align-self: flex-end; margin-top: 8px; font-size: 11px;" onclick="applyAiSuggestion('${id}')">Use</button>
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%; gap: 12px;">
+                  <span id="ai-text-holder-${id}" style="font-style: italic; font-weight: 400; line-height: 1.3; color: #1F1F1F; flex-grow: 1;">${data.suggestion}</span>
+                  <button class="btn-pill-outline btn-action-sm" style="flex-shrink: 0; margin: 0; font-size: 11px;" onclick="applyAiSuggestion('${id}')">Use</button>
+                </div>
               `;
             } else if (data.type === "SHAPE") {
-              // SHAPES: Default Yellow Warning Style
               container.classList.add('warning-bg');
-              container.style.backgroundColor = ''; // Reset inline style
+              container.style.backgroundColor = '#FFFDE7';
+              
               if (data.is_decorative_prob >= 60) {
                 container.innerHTML = `
                   <div style="display: flex; align-items: center; gap: 6px; color: #1F1F1F;">
-                    <span style="font-size: 14px;">💡</span> <strong>Suggested</strong> Mark as decorative
+                    <i class="icon-suggest-spark"></i>
+                    <span><strong>Suggested</strong> Mark as decorative</span>
                   </div>
                 `;
               } else {
                 container.innerHTML = `
                   <div style="display: flex; align-items: center; gap: 6px; color: #1F1F1F;">
-                    <span style="font-size: 14px;">💡</span> <strong>Suggested</strong> Provide custom alt text (Essential context)
+                    <i class="icon-suggest-spark"></i>
+                    <span><strong>Suggested</strong> Provide custom alt text</span>
                   </div>
                 `;
               }
@@ -1087,6 +1131,9 @@
          if (panel.style.display === 'none') {
            toggleEditMode(id);
          }
+
+         let aiContainer = document.getElementById('ai-container-' + id);
+         if (aiContainer) aiContainer.style.display = 'none';
       }
 
     </script>
