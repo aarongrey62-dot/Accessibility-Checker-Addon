@@ -445,6 +445,10 @@
         justify-content: center !important;
       }
 
+      .visual-card.is-decorative {
+        border-left: 1px solid #E0E0E0 !important;
+      }
+
     </style>
   </head>
   <body>
@@ -673,10 +677,20 @@
       function populateAiSuggestions(aiResponse) {
         try {
           document.getElementById('finishing-check').style.display = 'none';
-          document.querySelector('.tab-btn.active').classList.remove('loading-ai');
+          let activeTabBtn = document.querySelector('.tab-btn.active');
+          if(activeTabBtn) activeTabBtn.classList.remove('loading-ai');
 
-          let cleanResponse = aiResponse.replace(/```json/gi, '').replace(/```/g, '').trim();
+          // --- NEW: Bulletproof JSON Extraction ---
+          let cleanResponse = aiResponse;
+          let startIndex = cleanResponse.indexOf('{');
+          let endIndex = cleanResponse.lastIndexOf('}');
+          
+          if (startIndex !== -1 && endIndex !== -1) {
+            cleanResponse = cleanResponse.substring(startIndex, endIndex + 1);
+          }
+          
           let aiData = JSON.parse(cleanResponse);
+          // ----------------------------------------
           
           if (aiData.error) {
              throw new Error(aiData.error);
@@ -722,9 +736,9 @@
         } catch(e) {
           console.error("AI Parse Error:", e, aiResponse);
           document.getElementById('finishing-check').style.display = 'none';
-          document.querySelector('.tab-btn.active').classList.remove('loading-ai');
+          let activeTabBtn = document.querySelector('.tab-btn.active');
+          if(activeTabBtn) activeTabBtn.classList.remove('loading-ai');
 
-          // NEW: Actually display the error on the screen so you know the API failed
           let suggestionBox = document.getElementById('ai-order-suggestion');
           suggestionBox.className = 'ai-suggestion-box'; 
           suggestionBox.innerHTML = `
@@ -882,7 +896,7 @@
               <div class="visual-card ${cardClass}" id="card-${el.id}">
                 <div class="visual-header">
                   <span class="visual-title ${titleClass}" onclick="selectItem('${el.id}')">${defaultTitle}</span>
-                  <div style="display: flex; gap: 4px; align-items: center;">
+                  <div id="btn-group-${el.id}" style="display: flex; gap: 4px; align-items: center;">
                     <button class="btn-visual-action primary btn-action-sm" id="action-btn-${el.id}" onclick="toggleEditMode('${el.id}')">Add</button>
                     <button class="btn-visual-action primary btn-action-sm" id="save-btn-${el.id}" style="display: none;" onclick="saveAltText('${el.id}')">Save</button>
                   </div>
@@ -894,7 +908,7 @@
                    </div>
                 </div>
                 <div class="visual-controls">
-                  <input type="checkbox" class="decorative-checkbox" value="${el.id}" style="cursor: pointer; width: 14px; height: 14px; margin: 0;"> 
+                  <input type="checkbox" class="decorative-checkbox" value="${el.id}" onchange="toggleDecorative('${el.id}', this.checked)" style="cursor: pointer; width: 14px; height: 14px; margin: 0;"> 
                   <span>Mark as decorative?</span>
                 </div>
                 
@@ -1024,6 +1038,29 @@
         }
       }
 
+      function toggleDecorative(id, isChecked) {
+        let btnGroup = document.getElementById('btn-group-' + id);
+        let aiContainer = document.getElementById('ai-container-' + id);
+        let editPanel = document.getElementById('edit-panel-' + id);
+        let card = document.getElementById('card-' + id);
+
+        if (isChecked) {
+
+          if (btnGroup) btnGroup.style.display = 'none';
+          if (editPanel) editPanel.style.display = 'none';
+          if (aiContainer) aiContainer.style.display = 'none';
+          if (card) card.classList.add('is-decorative');
+        } else {
+          // Bring the buttons and border back
+          if (btnGroup) btnGroup.style.display = 'flex';
+          if (card) card.classList.remove('is-decorative');
+          
+          if (aiContainer && aiContainer.innerHTML.trim() !== '') {
+            aiContainer.style.display = 'flex';
+          }
+        }
+      }
+
       function saveAltText(id) {
         let newText = document.getElementById('input-' + id).value;
         
@@ -1070,8 +1107,17 @@
         if (activeTabBtn) activeTabBtn.classList.remove('loading-ai');
 
         try {
-          let cleanResponse = responseStr.replace(/```json/gi, '').replace(/```/g, '').trim();
+          // --- NEW: Bulletproof JSON Extraction ---
+          let cleanResponse = responseStr;
+          let startIndex = cleanResponse.indexOf('{');
+          let endIndex = cleanResponse.lastIndexOf('}');
+          
+          if (startIndex !== -1 && endIndex !== -1) {
+            cleanResponse = cleanResponse.substring(startIndex, endIndex + 1);
+          }
+          
           let aiData = JSON.parse(cleanResponse);
+          // ----------------------------------------
 
           if (aiData.error) throw new Error(aiData.error);
 
