@@ -714,15 +714,30 @@
           let activeTabBtn = document.querySelector('.tab-btn.active');
           if(activeTabBtn) activeTabBtn.classList.remove('loading-ai');
 
-          let cleanResponse = aiResponse;
-          let startIndex = cleanResponse.indexOf('{');
-          let endIndex = cleanResponse.lastIndexOf('}');
-          if (startIndex !== -1 && endIndex !== -1) {
-            cleanResponse = cleanResponse.substring(startIndex, endIndex + 1);
+          // --- NEW: Bulletproof JSON Extraction ---
+          let aiData;
+          try {
+            // 1. Try normal parsing first
+            aiData = JSON.parse(aiResponse);
+          } catch(e) {
+            // 2. Strip markdown blocks and slice to the brackets
+            let clean = aiResponse.replace(/```json/gi, '').replace(/```/g, '').trim();
+            let start = clean.indexOf('{');
+            let end = clean.lastIndexOf('}');
+            if (start !== -1 && end !== -1) {
+              clean = clean.substring(start, end + 1);
+            }
+            
+            // 3. Fix back-to-back duplicate objects (e.g. {}{}) by turning them into an array
+            clean = clean.replace(/}\s*{/g, '},{');
+            let parsed = JSON.parse('[' + clean + ']');
+            aiData = parsed[0]; // Safely grab the first valid object
           }
-          let aiData = JSON.parse(cleanResponse);
+          // ----------------------------------------
           
-          if (aiData.error) throw new Error(aiData.error);
+          if (aiData.error) {
+             throw new Error(aiData.error);
+          }
           
           currentSuggestedOrderString = aiData.suggested_order_string;
           currentSuggestedTitle = aiData.suggested_title;
@@ -1141,13 +1156,23 @@
         if (activeTabBtn) activeTabBtn.classList.remove('loading-ai');
 
         try {
-          let cleanResponse = responseStr;
-          let startIndex = cleanResponse.indexOf('{');
-          let endIndex = cleanResponse.lastIndexOf('}');
-          if (startIndex !== -1 && endIndex !== -1) {
-            cleanResponse = cleanResponse.substring(startIndex, endIndex + 1);
+          // --- NEW: Bulletproof JSON Extraction ---
+          let aiData;
+          try {
+            aiData = JSON.parse(responseStr);
+          } catch(e) {
+            let clean = responseStr.replace(/```json/gi, '').replace(/```/g, '').trim();
+            let start = clean.indexOf('{');
+            let end = clean.lastIndexOf('}');
+            if (start !== -1 && end !== -1) {
+              clean = clean.substring(start, end + 1);
+            }
+            
+            clean = clean.replace(/}\s*{/g, '},{');
+            let parsed = JSON.parse('[' + clean + ']');
+            aiData = parsed[0];
           }
-          let aiData = JSON.parse(cleanResponse);
+          // ----------------------------------------
 
           if (aiData.error) throw new Error(aiData.error);
 
