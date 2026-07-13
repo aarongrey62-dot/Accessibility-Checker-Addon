@@ -453,6 +453,58 @@
         border-left: 1px solid #E0E0E0 !important;
       }
 
+      /* INFO ICON BUTTON */
+      .info-icon-btn {
+        background: transparent;
+        border: none;
+        color: #0B56CF;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        margin-left: auto; /* Pushes the icon to the far right */
+        transition: color 0.2s;
+      }
+      .info-icon-btn svg { width: 16px; height: 16px; fill: currentColor; }
+      .info-icon-btn:hover { color: #0842A0; }
+
+      .summary-container {
+        padding: 4px;
+      }
+      .summary-back-link {
+        color: #0B56CF;
+        text-decoration: underline;
+        cursor: pointer;
+        font-size: 13px;
+        margin-bottom: 16px;
+        display: inline-block;
+      }
+      .summary-preview-card {
+        border-radius: 4px;
+        margin-bottom: 24px;
+        pointer-events: none; /* Disables clicking/dragging on the cloned preview */
+      }
+      .summary-section-title {
+        font-size: 15px;
+        font-weight: 500;
+        color: #1F1F1F;
+        margin-top: 16px;
+        margin-bottom: 6px;
+      }
+      .summary-text {
+        font-size: 13px;
+        color: #1F1F1F;
+        line-height: 1.4;
+      }
+      .summary-text ul {
+        margin: 8px 0;
+        padding-left: 20px;
+      }
+      .summary-text li {
+        margin-bottom: 6px;
+      }
+
     </style>
   </head>
   <body>
@@ -517,6 +569,7 @@
       let aiSuggestedOrderIds = []; 
 
       let currentTab = 'order';
+      let previousTab = 'order'; // Track tab history for the back button
       
       // Dynamic Tab Counters
       let titleAlertActive = false;
@@ -528,83 +581,60 @@
         let count = 0;
         if (titleAlertActive) count++;
         if (orderAlertActive) count++;
-        document.getElementById('tab-num-order').innerText = count;
         
-        let activeTab = document.querySelector('.tab-btn.active');
-        if (activeTab) {
-           activeTab.classList.remove('success-state', 'error-state');
+        let numEl = document.getElementById('tab-num-order');
+        if (numEl) numEl.innerText = count;
+        
+        // Explicitly target the Order tab so it doesn't color the summary tab
+        let orderTab = document.getElementById('tab-order');
+        if (orderTab) {
+           orderTab.classList.remove('success-state', 'error-state');
            
-           if (count === 0 && !activeTab.classList.contains('loading-ai')) {
-             activeTab.classList.add('success-state'); // 0 issues = Green
-           } else if (!hasValidTitle && !activeTab.classList.contains('loading-ai')) {
-             activeTab.classList.add('error-state'); // Title entirely missing = Red
+           if (count === 0 && !orderTab.classList.contains('loading-ai')) {
+             orderTab.classList.add('success-state'); 
+           } else if (!hasValidTitle && !orderTab.classList.contains('loading-ai')) {
+             orderTab.classList.add('error-state'); 
            }
         }
       }
 
       function loadData() {
         let suggestionBox = document.getElementById('ai-order-suggestion');
-        suggestionBox.style.display = 'none';
+        if(suggestionBox) suggestionBox.style.display = 'none';
         
-        suggestionBox.className = 'ai-suggestion-box';
-        suggestionBox.innerHTML = `
-           <strong>
-            <svg width="16" height="15" viewBox="0 0 16 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M7 1C7 0.447715 7.44772 0 8 0C8.55228 0 9 0.447715 9 1V2C9 2.55228 8.55228 3 8 3C7.44772 3 7 2.55228 7 2V1Z" fill="#F8C200"/>
-            <path d="M15 7C15.5523 7 16 7.44772 16 8C16 8.55228 15.5523 9 15 9H14C13.4477 9 13 8.55228 13 8C13 7.44772 13.4477 7 14 7H15Z" fill="#F8C200"/>
-            <path d="M2 7C2.55228 7 3 7.44772 3 8C3 8.55228 2.55228 9 2 9H1C0.447715 9 -2.41411e-08 8.55228 0 8C2.41411e-08 7.44772 0.447715 7 1 7H2Z" fill="#F8C200"/>
-            <path d="M12.1213 2.99999C11.7308 3.39051 11.7308 4.02368 12.1213 4.4142C12.5118 4.80473 13.145 4.80473 13.5355 4.4142L14.2426 3.70709C14.6332 3.31657 14.6332 2.68341 14.2426 2.29288C13.8521 1.90236 13.2189 1.90236 12.8284 2.29288L12.1213 2.99999Z" fill="#F8C200"/>
-            <path d="M3.82843 2.99999C4.21895 3.39051 4.21895 4.02368 3.82843 4.4142C3.4379 4.80473 2.80474 4.80473 2.41421 4.4142L1.70711 3.70709C1.31658 3.31657 1.31658 2.68341 1.70711 2.29288C2.09763 1.90236 2.7308 1.90236 3.12132 2.29288L3.82843 2.99999Z" fill="#F8C200"/>
-            <path d="M4 8C4 9.48057 4.8044 10.7733 6 11.4649V13C6 14.1046 6.89543 15 8 15C9.10457 15 10 14.1046 10 13V11.4649C11.1956 10.7733 12 9.48057 12 8C12 5.79086 10.2091 4 8 4C5.79086 4 4 5.79086 4 8Z" fill="#F8C200"/>
-            </svg>
-             Suggested order
-           </strong>
-           <span id="ai-order-text"><em>AI is analyzing layout...</em></span>
-        `;
+        if(suggestionBox) {
+          suggestionBox.className = 'ai-suggestion-box';
+          suggestionBox.innerHTML = `
+             <strong>
+              <svg width="16" height="15" viewBox="0 0 16 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7 1C7 0.447715 7.44772 0 8 0C8.55228 0 9 0.447715 9 1V2C9 2.55228 8.55228 3 8 3C7.44772 3 7 2.55228 7 2V1Z" fill="#F8C200"/>
+              <path d="M15 7C15.5523 7 16 7.44772 16 8C16 8.55228 15.5523 9 15 9H14C13.4477 9 13 8.55228 13 8C13 7.44772 13.4477 7 14 7H15Z" fill="#F8C200"/>
+              <path d="M2 7C2.55228 7 3 7.44772 3 8C3 8.55228 2.55228 9 2 9H1C0.447715 9 -2.41411e-08 8.55228 0 8C2.41411e-08 7.44772 0.447715 7 1 7H2Z" fill="#F8C200"/>
+              <path d="M12.1213 2.99999C11.7308 3.39051 11.7308 4.02368 12.1213 4.4142C12.5118 4.80473 13.145 4.80473 13.5355 4.4142L14.2426 3.70709C14.6332 3.31657 14.6332 2.68341 14.2426 2.29288C13.8521 1.90236 13.2189 1.90236 12.8284 2.29288L12.1213 2.99999Z" fill="#F8C200"/>
+              <path d="M3.82843 2.99999C4.21895 3.39051 4.21895 4.02368 3.82843 4.4142C3.4379 4.80473 2.80474 4.80473 2.41421 4.4142L1.70711 3.70709C1.31658 3.31657 1.31658 2.68341 1.70711 2.29288C2.09763 1.90236 2.7308 1.90236 3.12132 2.29288L3.82843 2.99999Z" fill="#F8C200"/>
+              <path d="M4 8C4 9.48057 4.8044 10.7733 6 11.4649V13C6 14.1046 6.89543 15 8 15C9.10457 15 10 14.1046 10 13V11.4649C11.1956 10.7733 12 9.48057 12 8C12 5.79086 10.2091 4 8 4C5.79086 4 4 5.79086 4 8Z" fill="#F8C200"/>
+              </svg>
+               Suggested order
+             </strong>
+             <span id="ai-order-text"><em>AI is analyzing layout...</em></span>
+          `;
+        }
         
         aiSuggestedOrderIds = []; 
         titleAlertActive = false;
         orderAlertActive = false;
-        document.getElementById('tab-num-order').innerText = "-"; 
+        let numOrder = document.getElementById('tab-num-order');
+        if (numOrder) numOrder.innerText = "-"; 
         
-        document.getElementById('sortable-list').innerHTML = `
-          <div class="loading-state">
-            <div class="dots">●●</div>
-            <div>Checking slide</div>
-          </div>`;
-        google.script.run.withSuccessHandler(renderData).getCurrentSlideData();
-      }
-
-      function injectTitleWarningHTML(isMissingTitle) {
-        let warningHTML = `
-            <div class="card-wrapper" style="margin-bottom: 8px;">
-              <div class="card missing-title">
-                <div class="card-content missing-title-content">
-                  <span>${isMissingTitle ? "No slide [Title]" : "Low relevance [Title]"}</span>
-                  <button class="btn-add-inline" onclick="injectTitle()">Add</button>
-                </div>
-              </div>
-              <div class="ai-inline error-state" style="border-left: 2px solid ${isMissingTitle ? '#D93025' : '#FFBC27'}">
-                <span>
-                <svg width="16" height="15" viewBox="0 0 16 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M7 1C7 0.447715 7.44772 0 8 0C8.55228 0 9 0.447715 9 1V2C9 2.55228 8.55228 3 8 3C7.44772 3 7 2.55228 7 2V1Z" fill="#F8C200"/>
-                  <path d="M15 7C15.5523 7 16 7.44772 16 8C16 8.55228 15.5523 9 15 9H14C13.4477 9 13 8.55228 13 8C13 7.44772 13.4477 7 14 7H15Z" fill="#F8C200"/>
-                  <path d="M2 7C2.55228 7 3 7.44772 3 8C3 8.55228 2.55228 9 2 9H1C0.447715 9 -2.41411e-08 8.55228 0 8C2.41411e-08 7.44772 0.447715 7 1 7H2Z" fill="#F8C200"/>
-                  <path d="M12.1213 2.99999C11.7308 3.39051 11.7308 4.02368 12.1213 4.4142C12.5118 4.80473 13.145 4.80473 13.5355 4.4142L14.2426 3.70709C14.6332 3.31657 14.6332 2.68341 14.2426 2.29288C13.8521 1.90236 13.2189 1.90236 12.8284 2.29288L12.1213 2.99999Z" fill="#F8C200"/>
-                  <path d="M3.82843 2.99999C4.21895 3.39051 4.21895 4.02368 3.82843 4.4142C3.4379 4.80473 2.80474 4.80473 2.41421 4.4142L1.70711 3.70709C1.31658 3.31657 1.31658 2.68341 1.70711 2.29288C2.09763 1.90236 2.7308 1.90236 3.12132 2.29288L3.82843 2.99999Z" fill="#F8C200"/>
-                  <path d="M4 8C4 9.48057 4.8044 10.7733 6 11.4649V13C6 14.1046 6.89543 15 8 15C9.10457 15 10 14.1046 10 13V11.4649C11.1956 10.7733 12 9.48057 12 8C12 5.79086 10.2091 4 8 4C5.79086 4 4 5.79086 4 8Z" fill="#F8C200"/>
-                </svg>
-                  Suggestion: <em id="ai-title-suggestion">Loading AI...</em>
-                </span>
-              </div>
+        let listEl = document.getElementById('sortable-list');
+        if(listEl) {
+          listEl.innerHTML = `
+            <div class="loading-state">
+              <div class="dots">●●</div>
+              <div>Checking slide</div>
             </div>`;
-            
-          let container = document.getElementById('dynamic-title-warning');
-          if(container) {
-             container.innerHTML = warningHTML;
-             titleAlertActive = true;
-             updateOrderTabCounter();
-          }
+        }
+        google.script.run.withSuccessHandler(renderData).getCurrentSlideData();
       }
 
       function renderData(data) {
@@ -621,7 +651,9 @@
 
         if (currentTab === 'visuals') {
            renderVisualsTab();
-           return; // Stop the rest of the Order tab from rendering
+           return; 
+        } else if (currentTab === 'summary') {
+           return; 
         }
         
         var html = "";
@@ -642,12 +674,10 @@
             </div>`;
         }
 
-        let displayIndex = 1; // NEW: Dynamic counter
+        let displayIndex = 1; 
         
         data.elements.forEach(function(el) {
           if (el.isTitle && !hasValidTitle) return;
-          
-          // NEW: Hide decorative items from the Order Tab so they act like true backgrounds!
           if (el.title === 'Decorative Image' || el.title === 'Decorative Shape') return;
           
           var displayTitle = el.isTitle ? `[Title] ${el.title.replace('Text: "', '').replace('"', '')}` : el.title;
@@ -664,15 +694,15 @@
             </div>
           </div>`;
           
-          displayIndex++; // Increase the counter for the next visible item
+          displayIndex++;
         });
         
         document.getElementById('sortable-list').innerHTML = html;
-
         document.getElementById('ai-order-suggestion').style.display = 'none';
-        
         document.getElementById('finishing-check').style.display = 'flex';
-        document.querySelector('.tab-btn.active').classList.add('loading-ai');
+        
+        let activeBtn = document.querySelector('.tab-btn.active');
+        if(activeBtn) activeBtn.classList.add('loading-ai');
         
         let payload = { slideId: activeSlideId, elements: currentSlideData };
         google.script.run.withSuccessHandler(populateAiSuggestions).analyzeOrderAndTitle(payload);
@@ -684,25 +714,20 @@
           let activeTabBtn = document.querySelector('.tab-btn.active');
           if(activeTabBtn) activeTabBtn.classList.remove('loading-ai');
 
-          // --- NEW: Bulletproof JSON Extraction ---
           let cleanResponse = aiResponse;
           let startIndex = cleanResponse.indexOf('{');
           let endIndex = cleanResponse.lastIndexOf('}');
-          
           if (startIndex !== -1 && endIndex !== -1) {
             cleanResponse = cleanResponse.substring(startIndex, endIndex + 1);
           }
-          
           let aiData = JSON.parse(cleanResponse);
-          // ----------------------------------------
           
-          if (aiData.error) {
-             throw new Error(aiData.error);
-          }
+          if (aiData.error) throw new Error(aiData.error);
           
           currentSuggestedOrderString = aiData.suggested_order_string;
           currentSuggestedTitle = aiData.suggested_title;
-          document.getElementById('ai-order-text').innerText = currentSuggestedOrderString;
+          let orderTextEl = document.getElementById('ai-order-text');
+          if(orderTextEl) orderTextEl.innerText = currentSuggestedOrderString;
           
           let isLowConfidence = aiData.title_confidence_score < 60;
           let titleWrapper = document.getElementById('title-card-wrapper');
@@ -717,11 +742,15 @@
              
              if (!hasValidTitle) {
                 suggestionDiv.className = 'ai-inline-error';
-                suggestionDiv.innerHTML = `<span>Suggested <em>${aiData.suggested_title}</em></span>`;
+                suggestionDiv.innerHTML = `
+                  <span style="flex-grow:1;">Suggested <em>${aiData.suggested_title}</em></span>
+                  <button class="info-icon-btn" onclick="showSummary('title-missing', 'title-card-wrapper')"><svg viewBox="0 -960 960 960"><path d="M440-280h80v-240h-80v240Zm40-320q17 0 28.5-11.5T520-640q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640q0 17 11.5 28.5T480-600Zm0 520q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg></button>`;
                 titleAlertActive = true;
              } else if (isLowConfidence) {
                 suggestionDiv.className = 'ai-inline-suggestion';
-                suggestionDiv.innerHTML = `<span>Suggested <em>${aiData.suggested_title}</em></span>`;
+                suggestionDiv.innerHTML = `
+                  <span style="flex-grow:1;">Suggested <em>${aiData.suggested_title}</em></span>
+                  <button class="info-icon-btn" onclick="showSummary('title-relevance', 'title-card-wrapper')"><svg viewBox="0 -960 960 960"><path d="M440-280h80v-240h-80v240Zm40-320q17 0 28.5-11.5T520-640q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640q0 17 11.5 28.5T480-600Zm0 520q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg></button>`;
                 titleAlertActive = true;
              } else {
                 suggestionDiv.className = 'ai-inline-success';
@@ -738,21 +767,21 @@
             checkOrderMatch(); 
           }
         } catch(e) {
-          console.error("AI Parse Error:", e, aiResponse);
           document.getElementById('finishing-check').style.display = 'none';
           let activeTabBtn = document.querySelector('.tab-btn.active');
           if(activeTabBtn) activeTabBtn.classList.remove('loading-ai');
 
           let suggestionBox = document.getElementById('ai-order-suggestion');
-          suggestionBox.className = 'ai-suggestion-box'; 
-          suggestionBox.innerHTML = `
-            <strong style="display:flex; align-items:center; gap:8px; margin-bottom:4px; font-weight:500; color:#C55353;">
-              ⚠️ AI Connection Error
-            </strong>
-            <span style="font-weight:400; line-height:1.3;">${e.message || "The AI failed to process this slide."}</span>
-          `;
-          suggestionBox.style.display = 'block';
-          
+          if(suggestionBox) {
+            suggestionBox.className = 'ai-suggestion-box'; 
+            suggestionBox.innerHTML = `
+              <strong style="display:flex; align-items:center; gap:8px; margin-bottom:4px; font-weight:500; color:#C55353;">
+                ⚠️ AI Connection Error
+              </strong>
+              <span style="font-weight:400; line-height:1.3;">${e.message || "The AI failed to process this slide."}</span>
+            `;
+            suggestionBox.style.display = 'block';
+          }
           orderAlertActive = true;
           updateOrderTabCounter();
         }
@@ -765,7 +794,8 @@
         let isMatch = JSON.stringify(currentDomIds) === JSON.stringify(aiSuggestedOrderIds);
         
         let suggestionBox = document.getElementById('ai-order-suggestion');
-        
+        if(!suggestionBox) return;
+
         if (isMatch) {
           suggestionBox.className = 'ai-success-box';
           suggestionBox.innerHTML = `<span>Logical reading order</span>`;
@@ -773,11 +803,14 @@
         } else {
           suggestionBox.className = 'ai-suggestion-box';
           suggestionBox.innerHTML = `
-            <strong style="display:flex; align-items:center; gap:8px; margin-bottom:4px; font-weight:500;">
-              <svg width="16" height="15" viewBox="0 0 16 15" fill="none" style="flex-shrink:0;"><path d="M7 1C7 0.447715 7.44772 0 8 0C8.55228 0 9 0.447715 9 1V2C9 2.55228 8.55228 3 8 3C7.44772 3 7 2.55228 7 2V1Z" fill="#F8C200"/><path d="M15 7C15.5523 7 16 7.44772 16 8C16 8.55228 15.5523 9 15 9H14C13.4477 9 13 8.55228 13 8C13 7.44772 13.4477 7 14 7H15Z" fill="#F8C200"/><path d="M2 7C2.55228 7 3 7.44772 3 8C3 8.55228 2.55228 9 2 9H1C0.447715 9 -2.41411e-08 8.55228 0 8C2.41411e-08 7.44772 0.447715 7 1 7H2Z" fill="#F8C200"/><path d="M12.1213 2.99999C11.7308 3.39051 11.7308 4.02368 12.1213 4.4142C12.5118 4.80473 13.145 4.80473 13.5355 4.4142L14.2426 3.70709C14.6332 3.31657 14.6332 2.68341 14.2426 2.29288C13.8521 1.90236 13.2189 1.90236 12.8284 2.29288L12.1213 2.99999Z" fill="#F8C200"/><path d="M3.82843 2.99999C4.21895 3.39051 4.21895 4.02368 3.82843 4.4142C3.4379 4.80473 2.80474 4.80473 2.41421 4.4142L1.70711 3.70709C1.31658 3.31657 1.31658 2.68341 1.70711 2.29288C2.09763 1.90236 2.7308 1.90236 3.12132 2.29288L3.82843 2.99999Z" fill="#F8C200"/><path d="M4 8C4 9.48057 4.8044 10.7733 6 11.4649V13C6 14.1046 6.89543 15 8 15C9.10457 15 10 14.1046 10 13V11.4649C11.1956 10.7733 12 9.48057 12 8C12 5.79086 10.2091 4 8 4C5.79086 4 4 5.79086 4 8Z" fill="#F8C200"/></svg>
-              Suggested order
-            </strong>
-            <span id="ai-order-text" style="font-weight:400; line-height:1.3;">${currentSuggestedOrderString}</span>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <strong style="display:flex; align-items:center; gap:8px; margin-bottom:4px; font-weight:500;">
+                <svg width="16" height="15" viewBox="0 0 16 15" fill="none" style="flex-shrink:0;"><path d="M7 1C7 0.447715 7.44772 0 8 0C8.55228 0 9 0.447715 9 1V2C9 2.55228 8.55228 3 8 3C7.44772 3 7 2.55228 7 2V1Z" fill="#F8C200"/><path d="M15 7C15.5523 7 16 7.44772 16 8C16 8.55228 15.5523 9 15 9H14C13.4477 9 13 8.55228 13 8C13 7.44772 13.4477 7 14 7H15Z" fill="#F8C200"/><path d="M2 7C2.55228 7 3 7.44772 3 8C3 8.55228 2.55228 9 2 9H1C0.447715 9 -2.41411e-08 8.55228 0 8C2.41411e-08 7.44772 0.447715 7 1 7H2Z" fill="#F8C200"/><path d="M12.1213 2.99999C11.7308 3.39051 11.7308 4.02368 12.1213 4.4142C12.5118 4.80473 13.145 4.80473 13.5355 4.4142L14.2426 3.70709C14.6332 3.31657 14.6332 2.68341 14.2426 2.29288C13.8521 1.90236 13.2189 1.90236 12.8284 2.29288L12.1213 2.99999Z" fill="#F8C200"/><path d="M3.82843 2.99999C4.21895 3.39051 4.21895 4.02368 3.82843 4.4142C3.4379 4.80473 2.80474 4.80473 2.41421 4.4142L1.70711 3.70709C1.31658 3.31657 1.31658 2.68341 1.70711 2.29288C2.09763 1.90236 2.7308 1.90236 3.12132 2.29288L3.82843 2.99999Z" fill="#F8C200"/><path d="M4 8C4 9.48057 4.8044 10.7733 6 11.4649V13C6 14.1046 6.89543 15 8 15C9.10457 15 10 14.1046 10 13V11.4649C11.1956 10.7733 12 9.48057 12 8C12 5.79086 10.2091 4 8 4C5.79086 4 4 5.79086 4 8Z" fill="#F8C200"/></svg>
+                Suggested order
+              </strong>
+              <button class="info-icon-btn" onclick="showSummary('reading-order', 'ai-order-suggestion')"><svg viewBox="0 -960 960 960"><path d="M440-280h80v-240h-80v240Zm40-320q17 0 28.5-11.5T520-640q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640q0 17 11.5 28.5T480-600Zm0 520q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg></button>
+            </div>
+            <span id="ai-order-text" style="font-weight:400; line-height:1.3; display:block; padding-right:20px;">${currentSuggestedOrderString}</span>
           `;
           orderAlertActive = true;
         }
@@ -801,8 +834,7 @@
           } else {
             targetWrapper.parentNode.insertBefore(draggedItem, targetWrapper);
           }
-          
-        updateNumbers();
+          updateNumbers();
           checkOrderMatch(); 
           saveOrder();
         }
@@ -819,7 +851,6 @@
 
       function saveOrder() {
         let newOrderIds = Array.from(document.querySelectorAll('.card-wrapper[data-id]')).map(c => c.getAttribute('data-id'));
-        
         google.script.run.saveNewOrder(newOrderIds);
       }
 
@@ -829,16 +860,13 @@
         google.script.run.withSuccessHandler(loadData).injectNativeTitle(currentSuggestedTitle); 
       }
 
-      loadData(); // Your existing line that starts the initial load
+      loadData(); 
 
-      // NEW: The Background Poller
-      // Checks every 2000 milliseconds (2 seconds) to see if the slide changed
       setInterval(function() {
         google.script.run.withSuccessHandler(function(newSlideId) {
-          // If we get an ID, we have an active ID, and they don't match...
           if (newSlideId && activeSlideId && newSlideId !== activeSlideId) {
-            activeSlideId = newSlideId; // Update the memory so it doesn't loop
-            loadData(); // Auto-refresh the sidebar!
+            activeSlideId = newSlideId; 
+            loadData(); 
           }
         }).getActiveSlideIdOnly();
       }, 2000); 
@@ -849,9 +877,8 @@
                         <li>Click to add Alt text to images and shapes</li>
                         <li>Add decorative items to slide background</li>
                       </ul>
-                    </div>`;
-        
-        html += `<div id="visuals-list" style="display: flex; flex-direction: column; gap: 8px;">`;
+                    </div>
+                    <div id="visuals-list" style="display: flex; flex-direction: column; gap: 8px;">`;
         
         let visualsOnly = currentSlideData.slice().sort((a, b) => {
           if (a.type === "IMAGE" && b.type !== "IMAGE") return -1;
@@ -863,7 +890,6 @@
           if (el.type === "IMAGE" || el.type === "SHAPE") {
             if (el.isDecorative) return; 
 
-            // FIX: Filter out true text boxes that Google mistakenly labels as SHAPEs
             let isTextShape = (el.type === "SHAPE" && el.text && el.text.trim().length > 0);
             if (isTextShape) return;
 
@@ -926,7 +952,7 @@
         html += `<button onclick="triggerFlatten()" class="btn-add-background">Add decorative to background</button>`;
         
         document.getElementById('sortable-list').innerHTML = html;
-      updateVisualsTabCounter();
+        updateVisualsTabCounter();
       }
 
       function triggerFlatten() {
@@ -947,25 +973,16 @@
         google.script.run
           .withSuccessHandler(function(response) {
             if (response.success) {
-               
-               // INSTANT CLEANUP: Ask the server to delete the temp slide in a fresh connection!
                google.script.run.cleanupTempSlide(response.tempSlideId);
-
                let stringifiedIds = JSON.stringify(selectedIds);
-
                document.getElementById('sortable-list').innerHTML = `
                   <div class="info-box" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap: 8px;">
                      <strong style="color:#01934F; font-size: 14px;">Background Generated!</strong>
-                     
                      <img src="${response.imageData}" style="width:100%; border:1px solid #ccc; border-radius:4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />
-                     
                      <button onclick='applyImageToSlide("${response.imageData}", ${stringifiedIds})' style="background: #0B56CF; color: white; border: none; border-radius: 20px; padding: 8px 24px; font-weight: 500; cursor: pointer; width: 100%; margin-top: 8px;">
                        Apply Automatically & Clean Up
                      </button>
-
-                     <p style="font-size:11px; color:#666; margin:0; padding-top: 4px;">
-                       (Or right-click the image to save it manually)
-                     </p>
+                     <p style="font-size:11px; color:#666; margin:0; padding-top: 4px;">(Or right-click the image to save it manually)</p>
                      <button onclick="loadData()" class="btn-pill-outline" style="margin-top:4px;">Back to Visuals List</button>
                   </div>
                `;
@@ -987,7 +1004,7 @@
         google.script.run
           .withSuccessHandler(function(res) {
             if (res.success) {
-              loadData(); // Refreshes the sidebar to show the clean slide
+              loadData(); 
             } else {
               alert(res.error);
               loadData();
@@ -996,25 +1013,37 @@
           .applyFlattenedImage(activeSlideId, dataUri, decorativeIds);
       }
 
-      function switchTab(tabName) {
-        if (currentTab === tabName) return; 
+      function switchTab(tabName, skipRender = false) {
+        if (currentTab === tabName && !skipRender) return; 
+        
+        // ONLY track history if coming from a normal tab
+        if (tabName === 'summary' && currentTab !== 'summary') {
+           previousTab = currentTab;
+        }
         currentTab = tabName;
 
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById('tab-' + tabName).classList.add('active');
+        let targetTabBtn = document.getElementById('tab-' + tabName);
+        if(targetTabBtn) targetTabBtn.classList.add('active');
+
+        document.getElementById('order-info-box').style.display = 'none';
+        document.getElementById('ai-order-suggestion').style.display = 'none';
+        document.getElementById('finishing-check').style.display = 'none';
+
+        if (skipRender) return; 
 
         if (currentTab === 'order') {
-           document.getElementById('order-info-box').style.display = 'block'; // Show Order info
+           document.getElementById('order-info-box').style.display = 'block';
            loadData(); 
         } else if (currentTab === 'visuals') {
-           document.getElementById('order-info-box').style.display = 'none'; // Hide Order info
-           document.getElementById('ai-order-suggestion').style.display = 'none'; 
-           document.getElementById('finishing-check').style.display = 'none';
            renderVisualsTab(); 
            fetchAltTextSuggestions(); 
+        } else if (currentTab === 'summary') {
+           document.getElementById('sortable-list').innerHTML = `
+            <div class="info-box" style="text-align: center; padding: 32px 16px;">
+              Click the info icon on any warning to view its detailed summary here.
+            </div>`;
         } else {
-           document.getElementById('order-info-box').style.display = 'none'; // Hide Order info
-           document.getElementById('ai-order-suggestion').style.display = 'none';
            document.getElementById('sortable-list').innerHTML = `<div class="loading-state"><div>${tabName} tab coming soon!</div></div>`;
         }
       }
@@ -1023,24 +1052,20 @@
         let panel = document.getElementById('edit-panel-' + id);
         let actionBtn = document.getElementById('action-btn-' + id);
         let saveBtn = document.getElementById('save-btn-' + id);
-        let aiContainer = document.getElementById('ai-container-' + id); // Look up AI box
+        let aiContainer = document.getElementById('ai-container-' + id); 
 
         if (panel.style.display === 'none') {
-          // OPENING EDIT MODE
           panel.style.display = 'block';
           if (actionBtn) actionBtn.style.display = 'none';    
           if (saveBtn) saveBtn.style.display = 'inline-flex'; 
-          
           document.getElementById('input-' + id).focus(); 
         } else {
-
           panel.style.display = 'none';
           if (actionBtn) actionBtn.style.display = 'inline-flex'; 
           if (saveBtn) saveBtn.style.display = 'none';            
-
-          if (aiContainer) aiContainer.style.display = 'flex';
+          if (aiContainer && aiContainer.innerHTML.trim() !== '') aiContainer.style.display = 'flex';
         }
-      updateVisualsTabCounter();
+        updateVisualsTabCounter();
       }
 
       function toggleDecorative(id, isChecked) {
@@ -1055,10 +1080,8 @@
           if (aiContainer) aiContainer.style.display = 'none';
           if (card) card.classList.add('is-decorative');
         } else {
-          // Bring the buttons and border back
           if (btnGroup) btnGroup.style.display = 'flex';
           if (card) card.classList.remove('is-decorative');
-          
           if (aiContainer && aiContainer.innerHTML.trim() !== '') {
             aiContainer.style.display = 'flex';
           }
@@ -1068,7 +1091,6 @@
 
       function saveAltText(id) {
         let newText = document.getElementById('input-' + id).value;
-        
         document.getElementById('card-' + id).style.opacity = '0.5';
 
         google.script.run
@@ -1077,7 +1099,8 @@
               loadData(); 
             } else {
               alert(res.error);
-              document.getElementById('card-' + id).style.opacity = '1';
+              let cardEl = document.getElementById('card-' + id);
+              if(cardEl) cardEl.style.opacity = '1';
             }
           })
           .updateElementAltText(id, newText);
@@ -1101,7 +1124,8 @@
         }
 
         document.getElementById('finishing-check').style.display = 'flex';
-        document.querySelector('.tab-btn.active').classList.add('loading-ai');
+        let activeTabBtn = document.querySelector('.tab-btn.active');
+        if(activeTabBtn) activeTabBtn.classList.add('loading-ai');
 
         let payload = {
           slideId: activeSlideId,
@@ -1117,17 +1141,13 @@
         if (activeTabBtn) activeTabBtn.classList.remove('loading-ai');
 
         try {
-          // --- NEW: Bulletproof JSON Extraction ---
           let cleanResponse = responseStr;
           let startIndex = cleanResponse.indexOf('{');
           let endIndex = cleanResponse.lastIndexOf('}');
-          
           if (startIndex !== -1 && endIndex !== -1) {
             cleanResponse = cleanResponse.substring(startIndex, endIndex + 1);
           }
-          
           let aiData = JSON.parse(cleanResponse);
-          // ----------------------------------------
 
           if (aiData.error) throw new Error(aiData.error);
 
@@ -1184,7 +1204,6 @@
          
          let suggestion = textHolder.innerText;
          let inputBox = document.getElementById('input-' + id);
-         
          inputBox.value = suggestion; 
          
          let panel = document.getElementById('edit-panel-' + id);
@@ -1208,50 +1227,109 @@
         let warningCount = 0;
         
         let visualCards = document.querySelectorAll('#visuals-list .visual-card');
-        
         visualCards.forEach(card => {
-          // If the card is marked decorative or has been successfully resolved, skip it
           if (!card.classList.contains('is-decorative') && !card.classList.contains('success-card')) {
             if (card.classList.contains('error-card')) {
-              errorCount++; // Images missing alt text
+              errorCount++; 
             } else if (card.classList.contains('warning-card')) {
-              warningCount++; // Shapes missing alt text
+              warningCount++; 
             }
           }
         });
 
         let totalIssues = errorCount + warningCount;
-        
-        let tabs = document.querySelectorAll('.tab-btn');
-        let visualsTab = null;
-        tabs.forEach(tab => {
-          if (tab.innerText.includes('Visuals')) {
-            visualsTab = tab;
-          }
-        });
+        let visualsTab = document.getElementById('tab-visuals');
 
         if (visualsTab) {
           let displayNum = totalIssues === 0 ? '-' : totalIssues;
           let countSpan = visualsTab.querySelector('span, b, strong, .tab-count, .tab-num'); 
-          if (countSpan) {
-            countSpan.innerText = displayNum;
-          }
+          if (countSpan) countSpan.innerText = displayNum;
 
-          // Reset classes
           visualsTab.style.backgroundColor = ''; 
           visualsTab.classList.remove('error-state', 'warning-state', 'success-state');
 
-          // Apply dynamic colors!
           if (errorCount > 0) {
-            visualsTab.classList.add('error-state'); // RED (At least 1 image error)
+            visualsTab.classList.add('error-state'); 
           } else if (warningCount > 0) {
-            visualsTab.classList.add('warning-state'); // YELLOW (Only shape warnings)
+            visualsTab.classList.add('warning-state'); 
           } else if (totalIssues === 0 && !visualsTab.classList.contains('loading-ai')) {
-            visualsTab.classList.add('success-state'); // GREEN (All clear)
+            visualsTab.classList.add('success-state'); 
           }
         }
       }
 
+      const summaryDatabase = {
+        'title-relevance': {
+          what: "The slide title could be improved to be more descriptive to match this slide's content.",
+          why: "A descriptive title allows screen reader users to quickly understand the main topic of the slide without having to read the entire contents. It creates essential structure and helps with navigation.",
+          how: "<ul><li>Review the suggested title provided by the AI.</li><li>Click <strong>Add</strong> to insert the suggested title automatically.</li><li>Or manually type a highly descriptive title that summarizes the slide's core message.</li></ul>",
+          wcagLabel: "WCAG 2.4.2: Page Titled",
+          wcagLink: "https://www.w3.org/WAI/WCAG21/Understanding/page-titled.html"
+        },
+        'title-missing': {
+          what: "This slide is completely missing a native title element.",
+          why: "Screen readers rely on the slide title to announce what the slide is about when the user navigates to it. Without one, users lack immediate context.",
+          how: "<ul><li>Click <strong>Add</strong> to inject a native title placeholder.</li><li>Use the AI suggestion or write your own descriptive title.</li></ul>",
+          wcagLabel: "WCAG 2.4.2: Page Titled",
+          wcagLink: "https://www.w3.org/WAI/WCAG21/Understanding/page-titled.html"
+        },
+        'reading-order': {
+          what: "The visual reading order of elements does not match the underlying logical DOM structure.",
+          why: "Screen readers read items based on their structural DOM sequence, not where they are placed visually. If the order is jumbled, a screen reader user will hear the information out of context, causing confusion.",
+          how: "<ul><li>Review the suggested logical reading order provided by the AI.</li><li>Drag and drop the items in the list to match the logical flow of the slide.</li></ul>",
+          wcagLabel: "WCAG 1.3.2: Meaningful Sequence",
+          wcagLink: "https://www.w3.org/WAI/WCAG21/Understanding/meaningful-sequence.html"
+        }
+      };
+
+      function showSummary(issueKey, cloneId) {
+        let content = summaryDatabase[issueKey];
+        if (!content) return;
+
+        switchTab('summary', true);
+
+        let previewHtml = '';
+        let previewElement = document.getElementById(cloneId);
+        
+        if (previewElement) {
+          let clone = previewElement.cloneNode(true);
+          clone.removeAttribute('id'); 
+          clone.style.display = 'block'; 
+          clone.style.marginBottom = '0'; 
+          
+          let iconBtn = clone.querySelector('.info-icon-btn');
+          if (iconBtn) iconBtn.remove();
+          
+          previewHtml = clone.outerHTML;
+        }
+
+        let aiOrderBox = document.getElementById('ai-order-suggestion');
+        if (aiOrderBox) aiOrderBox.style.display = 'none';
+
+        document.getElementById('sortable-list').innerHTML = `
+          <div class="summary-container">
+            <a class="summary-back-link" onclick="switchTab('${previousTab}')">&lt;Back</a>
+            
+            <div class="summary-preview-card">
+              ${previewHtml}
+            </div>
+
+            <div class="summary-section-title">What is wrong?</div>
+            <div class="summary-text">${content.what}</div>
+
+            <div class="summary-section-title">Why it matters?</div>
+            <div class="summary-text">${content.why}</div>
+
+            <div class="summary-section-title">How to fix</div>
+            <div class="summary-text">${content.how}</div>
+            
+            <div class="summary-section-title">Related WCAG</div>
+            <div class="summary-text">
+              <a href="${content.wcagLink}" target="_blank" style="color: #1A73E8; font-weight: 500;">${content.wcagLabel}</a>
+            </div>
+          </div>
+        `;
+      }
     </script>
   </body>
 </html>
