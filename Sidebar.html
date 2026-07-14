@@ -546,6 +546,8 @@
       </div>
     </div>
 
+    <div id="summary-view" style="display: none;"></div>
+
     <div id="ai-order-suggestion" class="ai-suggestion-box">
        <strong>
         <svg width="16" height="15" viewBox="0 0 16 15" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1031,8 +1033,10 @@
       function switchTab(tabName, skipRender = false) {
         if (currentTab === tabName && !skipRender) return; 
         
-        // ONLY track history if coming from a normal tab
-        if (tabName === 'summary' && currentTab !== 'summary') {
+        let cameFromSummary = (currentTab === 'summary');
+        
+        // Only track history when LEAVING a normal tab
+        if (currentTab !== 'summary') {
            previousTab = currentTab;
         }
         currentTab = tabName;
@@ -1041,25 +1045,44 @@
         let targetTabBtn = document.getElementById('tab-' + tabName);
         if(targetTabBtn) targetTabBtn.classList.add('active');
 
+        // Reset visibility rules
         document.getElementById('order-info-box').style.display = 'none';
         document.getElementById('ai-order-suggestion').style.display = 'none';
         document.getElementById('finishing-check').style.display = 'none';
+
+        let summaryView = document.getElementById('summary-view');
+        if (summaryView) summaryView.style.display = 'none';
+        
+        let sortableList = document.getElementById('sortable-list');
+        if (sortableList) sortableList.style.display = 'flex';
 
         if (skipRender) return; 
 
         if (currentTab === 'order') {
            document.getElementById('order-info-box').style.display = 'block';
-           loadData(); 
+           if (cameFromSummary) {
+             // Instantly restore AI box without hitting the server
+             let aiBox = document.getElementById('ai-order-suggestion');
+             if (aiBox && currentSuggestedOrderString !== "") {
+                aiBox.style.display = 'block';
+             }
+           } else {
+             loadData(); 
+           }
         } else if (currentTab === 'visuals') {
-           renderVisualsTab(); 
-           fetchAltTextSuggestions(); 
+           if (!cameFromSummary) {
+             renderVisualsTab(); 
+             fetchAltTextSuggestions(); 
+           }
         } else if (currentTab === 'summary') {
-           document.getElementById('sortable-list').innerHTML = `
-            <div class="info-box" style="text-align: center; padding: 32px 16px;">
-              Click the info icon on any warning to view its detailed summary here.
-            </div>`;
-        } else {
-           document.getElementById('sortable-list').innerHTML = `<div class="loading-state"><div>${tabName} tab coming soon!</div></div>`;
+           if (sortableList) sortableList.style.display = 'none';
+           if (summaryView) {
+             summaryView.style.display = 'block';
+             summaryView.innerHTML = `
+              <div class="info-box" style="text-align: center; padding: 32px 16px;">
+                Click the info icon on any warning to view its detailed summary here.
+              </div>`;
+           }
         }
       }
 
@@ -1311,49 +1334,63 @@
         let content = summaryDatabase[issueKey];
         if (!content) return;
 
+        // Switch to the summary tab without resetting the data
         switchTab('summary', true);
 
+        // Safely clone the DOM element to avoid ID conflicts
         let previewHtml = '';
         let previewElement = document.getElementById(cloneId);
         
         if (previewElement) {
           let clone = previewElement.cloneNode(true);
-          clone.removeAttribute('id'); 
-          clone.style.display = 'block'; 
-          clone.style.marginBottom = '0'; 
           
+          // Strip the ID so it doesn't conflict with the original element
+          clone.removeAttribute('id'); 
+          clone.style.display = 'block'; // Ensure it's visible
+          clone.style.marginBottom = '0'; // Clean up the bottom spacing for the preview
+          
+          // Optional: Remove the info icon from the preview so it acts purely as a snapshot
           let iconBtn = clone.querySelector('.info-icon-btn');
           if (iconBtn) iconBtn.remove();
           
           previewHtml = clone.outerHTML;
         }
 
+        // Hide the original UI elements
         let aiOrderBox = document.getElementById('ai-order-suggestion');
         if (aiOrderBox) aiOrderBox.style.display = 'none';
 
-        document.getElementById('sortable-list').innerHTML = `
-          <div class="summary-container">
-            <a class="summary-back-link" onclick="switchTab('${previousTab}')">&lt;Back</a>
-            
-            <div class="summary-preview-card">
-              ${previewHtml}
+        let sortableList = document.getElementById('sortable-list');
+        if (sortableList) sortableList.style.display = 'none';
+
+        // Target the new summary container
+        let summaryView = document.getElementById('summary-view');
+        if (summaryView) {
+          summaryView.style.display = 'block';
+          summaryView.innerHTML = `
+            <div class="summary-container">
+              <a class="summary-back-link" onclick="switchTab('${previousTab}')">&lt;Back</a>
+              
+              <div class="summary-preview-card">
+                ${previewHtml}
+              </div>
+
+              <div class="summary-section-title">What is wrong?</div>
+              <div class="summary-text">${content.what}</div>
+
+              <div class="summary-section-title">Why it matters?</div>
+              <div class="summary-text">${content.why}</div>
+
+              <div class="summary-section-title">How to fix</div>
+              <div class="summary-text">${content.how}</div>
+              
+              <div class="summary-section-title">Related WCAG</div>
+              <div class="summary-text">
+                <a href="${content.wcagLink}" target="_blank" style="color: #1A73E8; font-weight: 500;">${content.wcagLabel}</a>
+              </div>
             </div>
-
-            <div class="summary-section-title">What is wrong?</div>
-            <div class="summary-text">${content.what}</div>
-
-            <div class="summary-section-title">Why it matters?</div>
-            <div class="summary-text">${content.why}</div>
-
-            <div class="summary-section-title">How to fix</div>
-            <div class="summary-text">${content.how}</div>
-            
-            <div class="summary-section-title">Related WCAG</div>
-            <div class="summary-text">
-              <a href="${content.wcagLink}" target="_blank" style="color: #1A73E8; font-weight: 500;">${content.wcagLabel}</a>
-            </div>
-          </div>
-        `;
+          `;
+        }
       }
     </script>
   </body>
